@@ -10,6 +10,7 @@ export interface RiskAndSolution {
 }
 
 export interface DemystifiedDocument {
+  title: string;
   summary: string;
   keyClauses: KeyClause[];
   potentialRisks: RiskAndSolution[];
@@ -25,4 +26,12 @@ export enum OutputTab {
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
+}
+
+export interface ChatSession {
+  id: string;
+  demystifiedData: DemystifiedDocument;
+  originalText: string;
+  chatHistory: ChatMessage[];
+  createdAt: number;
 }
