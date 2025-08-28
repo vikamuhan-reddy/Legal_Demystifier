@@ -1,22 +1,19 @@
 {
   "name": "legal-document-demystifier",
+  "version": "1.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "An AI-powered tool to simplify complex legal documents.",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@google/genai": "^1.15.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "pdfjs-dist": "4.4.168"
+    "@google/genai": "^1.15.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/node": "^20.12.12",
+    "@vercel/node": "^3.1.5",
+    "typescript": "^5.4.5",
+    "vercel": "^34.2.0"
   }
 }
