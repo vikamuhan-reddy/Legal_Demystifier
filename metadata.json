@@ -1,0 +1,5 @@
+{
+  "name": "Legal Document Demystifier",
+  "description": "An AI-powered tool to simplify complex legal documents. Paste in legal text, and the app provides a plain-language summary, identifies key clauses, and highlights potential risks and obligations.",
+  "requestFramePermissions": []
+}
