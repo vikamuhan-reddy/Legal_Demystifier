@@ -1,15 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { demystifyDocument, answerQuestionAboutDocument } from '../backend/geminiService';
-import * as historyService from '../backend/historyService';
-import { parsePdf, parseDocx } from '../backend/fileParser';
-import type { DemystifiedDocument, ChatMessage, ChatSession } from '../types';
-import { OutputTab } from '../types';
-import Header from './components/Header';
-import InputArea from './components/TextAreaInput';
-import OutputDisplay from './components/OutputDisplay';
-import HistoryPanel from './components/HistoryPanel';
-import Toast from './components/Toast';
-import OutputSkeleton from './components/OutputSkeleton';
+import './firebase.ts'; // Initialize Firebase
+import { demystifyDocument, answerQuestionAboutDocument } from '../backend/geminiService.ts';
+import * as historyService from '../backend/historyService.ts';
+import { parsePdf, parseDocx } from '../backend/fileParser.ts';
+import type { DemystifiedDocument, ChatMessage, ChatSession } from '../types.ts';
+import { OutputTab } from '../types.ts';
+import Header from './components/Header.tsx';
+import InputArea from './components/TextAreaInput.tsx';
+import OutputDisplay from './components/OutputDisplay.tsx';
+import HistoryPanel from './components/HistoryPanel.tsx';
+import Toast from './components/Toast.tsx';
+import OutputSkeleton from './components/OutputSkeleton.tsx';
 
 type View = 'home' | 'analysis';
 

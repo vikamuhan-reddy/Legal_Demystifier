@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { ChatMessage } from '../../types';
-import ActionBar from './ActionBar';
+import type { ChatMessage } from '../../types.ts';
+import ActionBar from './ActionBar.tsx';
 
 // marked is loaded as a global script from the CDN, so we declare it to satisfy TypeScript
 declare const marked: any;

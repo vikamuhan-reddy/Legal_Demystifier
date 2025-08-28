@@ -1,5 +1,5 @@
 import React from 'react';
-import { HistoryIcon, PlusIcon, SunIcon, MoonIcon } from './icons';
+import { HistoryIcon, PlusIcon, SunIcon, MoonIcon } from './icons.tsx';
 
 interface HeaderProps {
     onNewChat: () => void;

@@ -2,15 +2,16 @@
   "compilerOptions": {
     "target": "es2020",
     "lib": ["dom", "es2020"],
-    "module": "commonjs",
+    "module": "esnext",
     "jsx": "react-jsx",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "outDir": ".vercel/output",
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": false
   },
-  "include": ["api/**/*.ts", "frontend/**/*.ts", "frontend/**/*.tsx", "types.ts"],
-  "exclude": ["node_modules"]
+  "include": ["./**/*.ts", "./**/*.tsx"],
+  "exclude": ["node_modules", "firebase/functions"]
 }

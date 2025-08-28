@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { TextIcon, UploadIcon, FileIcon, CloseIcon } from './icons';
+import { TextIcon, UploadIcon, FileIcon, CloseIcon } from './icons.tsx';
 
 interface InputAreaProps {
   value: string;

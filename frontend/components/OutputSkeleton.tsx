@@ -1,5 +1,5 @@
 import React from 'react';
-import { SummaryIcon, KeyIcon, WarningIcon, ChatIcon } from './icons';
+import { SummaryIcon, KeyIcon, WarningIcon, ChatIcon } from './icons.tsx';
 
 const OutputSkeleton: React.FC = () => {
     return (

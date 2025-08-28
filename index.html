@@ -113,17 +113,23 @@
   <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.15.0",
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
     "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs",
-    "@vercel/node": "https://aistudiocdn.com/@vercel/node@^5.3.16"
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/functions": "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js",
+    "@vercel/node": "https://aistudiocdn.com/@vercel/node@^5.3.16",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.1.0/",
+    "firebase-functions": "https://aistudiocdn.com/firebase-functions@^6.4.0"
   }
 }
 </script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
   <body class="bg-background text-foreground">
     <div id="root"></div>
+    <script type="text/babel" data-type="module" src="/index.tsx"></script>
   </body>
 </html>

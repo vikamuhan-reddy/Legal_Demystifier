@@ -1,19 +1,19 @@
 {
   "name": "legal-document-demystifier",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "An AI-powered tool to simplify complex legal documents.",
+  "description": "An AI-powered tool to simplify complex legal documents, deployable on Firebase.",
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
+    "dev": "firebase emulators:start",
+    "deploy": "firebase deploy",
+    "postinstall": "cd firebase/functions && npm install"
   },
   "dependencies": {
-    "@google/genai": "^1.15.0"
+    "firebase": "^10.12.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
-    "@vercel/node": "^3.1.5",
-    "typescript": "^5.4.5",
-    "vercel": "^34.2.0"
+    "firebase-tools": "^13.11.2",
+    "typescript": "^5.4.5"
   }
 }

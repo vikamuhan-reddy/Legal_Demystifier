@@ -1,9 +1,9 @@
 import React from 'react';
-import type { DemystifiedDocument, ChatMessage, KeyClause, RiskAndSolution } from '../../types';
-import { OutputTab } from '../../types';
-import { SummaryIcon, KeyIcon, WarningIcon, ChatIcon, ShieldCheckIcon } from './icons';
-import ChatInterface from './ChatInterface';
-import ActionBar from './ActionBar';
+import type { DemystifiedDocument, ChatMessage, KeyClause, RiskAndSolution } from '../../types.ts';
+import { OutputTab } from '../../types.ts';
+import { SummaryIcon, KeyIcon, WarningIcon, ChatIcon, ShieldCheckIcon } from './icons.tsx';
+import ChatInterface from './ChatInterface.tsx';
+import ActionBar from './ActionBar.tsx';
 
 interface OutputDisplayProps {
   data: DemystifiedDocument;
@@ -123,7 +123,6 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({
             <ChatInterface 
                 history={chatHistory}
                 isAnswering={isAnswering}
-                // FIX: Pass the chatError prop to the ChatInterface component. The `error` variable was not defined.
                 error={chatError}
                 onSendQuestion={onSendQuestion}
                 onRegenerateAnswer={onRegenerateAnswer}

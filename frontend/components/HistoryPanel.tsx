@@ -1,6 +1,6 @@
 import React from 'react';
-import type { ChatSession } from '../../types';
-import { CloseIcon, TrashIcon, FileIcon } from './icons';
+import type { ChatSession } from '../../types.ts';
+import { CloseIcon, TrashIcon, FileIcon } from './icons.tsx';
 
 interface HistoryPanelProps {
   isOpen: boolean;

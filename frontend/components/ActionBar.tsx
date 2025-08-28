@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { CopyIcon, CheckIcon, ShareIcon, SpeakerIcon, StopIcon, RegenerateIcon } from './icons';
+import { CopyIcon, CheckIcon, ShareIcon, SpeakerIcon, StopIcon, RegenerateIcon } from './icons.tsx';
 
 interface ActionBarProps {
   textToCopy: string;

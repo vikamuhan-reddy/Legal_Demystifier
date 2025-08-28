@@ -1,5 +1,5 @@
 
-import type { ChatSession } from '../types';
+import type { ChatSession } from '../types.ts';
 
 const HISTORY_KEY = 'legalDemystifierHistory';
 
