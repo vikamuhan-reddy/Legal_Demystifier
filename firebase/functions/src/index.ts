@@ -61,16 +61,19 @@ const responseSchema = {
 
 // The API key is stored in Firebase environment configuration.
 // To set it, run: firebase functions:config:set gemini.key="YOUR_API_KEY"
-const API_KEY = functions.config().gemini.key;
+const API_KEY = functions.config().gemini?.key;
 
 if (!API_KEY) {
-  throw new Error("API key is not configured. Please run 'firebase functions:config:set gemini.key=\"YOUR_API_KEY\"' and redeploy.");
+  throw new Error("API key is not configured. Run 'firebase functions:config:set gemini.key=\"YOUR_API_KEY\"' and redeploy. For local development, also run 'firebase functions:config:get > firebase/functions/.runtimeconfig.json' from your project root.");
 }
 
 const ai = new GoogleGenAI({apiKey: API_KEY});
 
-export const geminiProxy = functions.https.onCall(async (data, context) => {
-  const {action, legalText, chatHistory, question} = data;
+// Fix: The onCall handler for this version of firebase-functions receives a single
+// request object, and the payload is in the `data` property of that object.
+// The signature has been updated from `(data, context)` to `(request)`.
+export const geminiProxy = functions.https.onCall(async (request) => {
+  const {action, legalText, chatHistory, question} = request.data;
 
   try {
     if (action === "demystify") {

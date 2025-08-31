@@ -27,20 +27,21 @@ Follow these steps to get the application running on your own Firebase project.
 1.  On your project dashboard, click the Web icon (`</>`) to add a Firebase app to your project.
 2.  Give your app a nickname (e.g., "Legal Demystifier App").
 3.  Click **"Register app"**.
-4.  You will see your Firebase configuration details. You will need these for the next step.
+4.  You will see your Firebase configuration details under **"SDK setup and configuration"**. You will need these for the next step.
 
 ### Step 3: Configure the Frontend
 
-1.  In the project's code, navigate to the `frontend/` directory.
-2.  Rename the file `firebaseConfig.example.ts` to `firebaseConfig.ts`.
-3.  Open the new `firebaseConfig.ts` file.
-4.  Copy the Firebase configuration object from the Firebase console (from Step 2) and paste it into this file, replacing the placeholder values.
+1.  In your project's code, open the file `frontend/firebase.ts`.
+2.  You will see a placeholder `firebaseConfig` object.
+3.  Copy the Firebase configuration object from the Firebase console (from Step 2) and use it to replace the placeholder values in this file.
 
     ```typescript
-    // frontend/firebaseConfig.ts
+    // frontend/firebase.ts
 
-    // Paste your Firebase config object here
-    export const firebaseConfig = {
+    // ... (imports) ...
+
+    // Paste your Firebase config object here, replacing the placeholder values.
+    const firebaseConfig = {
       apiKey: "AIza....",
       authDomain: "your-project-id.firebaseapp.com",
       projectId: "your-project-id",
@@ -48,6 +49,8 @@ Follow these steps to get the application running on your own Firebase project.
       messagingSenderId: "...",
       appId: "1:..."
     };
+
+    // ... (initialization code) ...
     ```
 
 ### Step 4: Set up Firebase Cloud Functions
@@ -96,3 +99,22 @@ You need to install dependencies for both the root project (for the UI) and the 
 3.  After deployment is complete, the terminal will give you a **"Hosting URL"**. This is the URL where your live application is available.
 
 Congratulations! Your Legal Document Demystifier is now running on Firebase.
+
+### Step 8: Running Locally with the Firebase Emulator (Optional)
+
+If you want to test your changes locally before deploying, you can use the Firebase Emulator Suite.
+
+1.  **Fetch Environment Configuration:**
+    The emulator needs the same API key you set for the deployed function. Run the following command from the project's root directory to download your configuration into a local file that the emulator can read:
+
+    ```bash
+    firebase functions:config:get > firebase/functions/.runtimeconfig.json
+    ```
+    > **Note:** This command creates a `.runtimeconfig.json` file inside the `firebase/functions` directory. This file contains your API key, so be careful not to commit it to a public repository.
+
+2.  **Start the Emulator:**
+    Run the following command from the project's root directory:
+    ```bash
+    npm run dev
+    ```
+    This will start the emulators for Functions and Hosting. You can access your local web app at `http://localhost:5000` (or whatever port the CLI indicates).
