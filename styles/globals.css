@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 6%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 12%;
+    --muted-foreground: 215 20.2% 85%;
+    --accent: 217.2 32.6% 12%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 25%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/10 selection:text-primary;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+.font-serif {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.legal-text {
+  @apply font-serif leading-relaxed text-xl tracking-tight;
+}
+
+.minimal-card {
+  @apply bg-card border border-border/60 hover:border-border transition-all duration-300;
+}
+
+.minimal-shadow {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.minimal-button {
+  @apply px-6 py-2.5 rounded-md font-medium transition-all duration-200 active:scale-95;
+}
+
+/* Custom Prose Overrides for Chat */
+.prose {
+  --tw-prose-body: theme('colors.foreground');
+  --tw-prose-headings: theme('colors.foreground');
+  --tw-prose-links: theme('colors.primary.DEFAULT');
+  --tw-prose-bold: theme('colors.foreground');
+  --tw-prose-counters: theme('colors.muted.foreground');
+  --tw-prose-bullets: theme('colors.primary.DEFAULT');
+  --tw-prose-hr: theme('colors.border');
+  --tw-prose-quotes: theme('colors.foreground');
+  --tw-prose-quote-borders: theme('colors.primary.DEFAULT');
+  --tw-prose-captions: theme('colors.muted.foreground');
+  --tw-prose-code: theme('colors.foreground');
+  --tw-prose-pre-code: theme('colors.foreground');
+  --tw-prose-pre-bg: theme('colors.muted.DEFAULT');
+  --tw-prose-th-borders: theme('colors.border');
+  --tw-prose-td-borders: theme('colors.border');
+}
