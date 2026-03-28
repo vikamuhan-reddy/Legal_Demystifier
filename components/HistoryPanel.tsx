@@ -15,7 +15,14 @@ interface HistoryPanelProps {
 
 const HistoryPanel: React.FC<HistoryPanelProps> = ({ isOpen, sessions, onClose, onLoadSession, onDeleteSession, onClearAll }) => {
     
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const formatDate = (timestamp: number) => {
+        if (!mounted) return '';
         const date = new Date(timestamp);
         const now = new Date();
         const diffSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
@@ -26,7 +33,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ isOpen, sessions, onClose, 
         const diffHours = Math.round(diffMinutes / 60);
         if (diffHours < 24) return `${diffHours}h ago`;
         
-        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     return (

@@ -187,7 +187,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".pdf,.docx"
+                accept=".pdf,.docx,.png,.jpg,.jpeg,.webp,.svg"
                 className="hidden"
                 disabled={isParsing || isLoading}
               />
@@ -237,7 +237,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                     </div>
                     <div className="text-center">
                       <p className="text-lg md:text-xl font-serif tracking-tight font-semibold">Drop your document here</p>
-                      <p className="text-[10px] text-muted-foreground/70 mt-2 uppercase tracking-[0.2em]">PDF or DOCX (max. 10MB)</p>
+                      <p className="text-[10px] text-muted-foreground/70 mt-2 uppercase tracking-[0.2em]">PDF, DOCX, or Images (max. 10MB)</p>
                     </div>
                     <div className="flex items-center gap-3 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-[9px] uppercase tracking-[0.2em] shadow-lg shadow-primary/10 hover:bg-primary/90 transition-all">
                       <MousePointer2 className="h-3.5 w-3.5" />

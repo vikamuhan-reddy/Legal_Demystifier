@@ -16,6 +16,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
   error: string | null;
   isDemoMode: boolean;
 }
@@ -261,8 +262,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (name: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      if (isDemoMode) {
+        const updatedUser = { ...user!, name };
+        setUser(updatedUser);
+        localStorage.setItem('demo_user', JSON.stringify(updatedUser));
+        return;
+      }
+
+      const updatedUser = await authService.updateProfile(name);
+      if (updatedUser) {
+        setUser({
+          id: updatedUser.id,
+          email: updatedUser.email || '',
+          name: updatedUser.user_metadata?.full_name || '',
+        });
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout, error, isDemoMode }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout, updateProfile, error, isDemoMode }}>
       {children}
     </AuthContext.Provider>
   );

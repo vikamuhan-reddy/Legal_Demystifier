@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
@@ -17,6 +18,11 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Disable webpack cache to avoid ENOENT issues in some environments
+    config.cache = false;
+    return config;
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

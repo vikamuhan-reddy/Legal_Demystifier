@@ -77,6 +77,20 @@ export const authService = {
   },
 
   /**
+   * Update the current user's profile metadata.
+   */
+  async updateProfile(name: string) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        full_name: name,
+      },
+    });
+
+    if (error) throw error;
+    return data.user;
+  },
+
+  /**
    * Listen for auth state changes.
    */
   onAuthStateChange(callback: (event: string, session: any) => void) {

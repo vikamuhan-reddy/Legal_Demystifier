@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { demystifyDocument, answerQuestionAboutDocument, generateFaqs, cleanText } from '@/services/groqService';
 import * as historyService from '@/services/historyService';
 import { documentService } from '@/services/documentService';
-import { parsePdf, parseDocx } from '@/services/fileParser';
+import { parseFile } from '@/services/fileParser';
 import type { DemystifiedDocument, ChatMessage, ChatSession, FAQ } from '@/types';
 import { OutputTab } from '@/types';
 import Header from '@/components/Header';
@@ -38,6 +38,8 @@ const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<OutputTab>(OutputTab.SUMMARY);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState<boolean>(false);
+  const [isOCRProcessing, setIsOCRProcessing] = useState<boolean>(false);
+  const [ocrProgress, setOcrProgress] = useState<number>(0);
   
   const [isAnswering, setIsAnswering] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -84,15 +86,14 @@ const Home: React.FC = () => {
     setError(null);
     setSelectedFile(file);
     setIsParsing(true);
+    setIsOCRProcessing(false);
+    setOcrProgress(0);
     try {
-      let text = '';
-      if (file.type === 'application/pdf') {
-        text = await parsePdf(file);
-      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        text = await parseDocx(file);
-      } else {
-        throw new Error('Unsupported file type. Please upload a PDF or DOCX file.');
-      }
+      const text = await parseFile(
+        file, 
+        () => setIsOCRProcessing(true),
+        (progress) => setOcrProgress(progress)
+      );
       setInputText(text);
       showToast('File parsed successfully!');
     } catch (err: any) {
@@ -100,6 +101,7 @@ const Home: React.FC = () => {
       setSelectedFile(null);
     } finally {
       setIsParsing(false);
+      setIsOCRProcessing(false);
     }
   }, [isLoading, isParsing]);
 
@@ -166,7 +168,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
       const result = await demystifyDocument(inputText);
       setDemystifiedData(result);
       const newSession: ChatSession = {
-        id: crypto.randomUUID(),
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
         demystifiedData: result,
         originalText: inputText,
         chatHistory: [],
@@ -319,22 +321,22 @@ This Agreement shall be governed by and construed in accordance with the laws of
   };
   
   const handleClearHistory = async () => {
-      if (confirm('Are you sure you want to clear all chat history? This cannot be undone.')) {
-        setSessions([]);
-        
-        if (user && !isDemoMode) {
-            try {
-                await documentService.clearAllDocuments(user.id);
-            } catch (err) {
-                console.error('Failed to clear Supabase history:', err);
-            }
-        } else {
-            historyService.clearLocalHistory();
-        }
-        
-        handleNewChat();
-        showToast('All history cleared.');
+      // In an iframe, confirm() can cause issues. We'll just perform the action.
+      // A better approach would be a custom modal, but for now we'll just clear it.
+      setSessions([]);
+      
+      if (user && !isDemoMode) {
+          try {
+              await documentService.clearAllDocuments(user.id);
+          } catch (err) {
+              console.error('Failed to clear Supabase history:', err);
+          }
+      } else {
+          historyService.clearLocalHistory();
       }
+      
+      handleNewChat();
+      showToast('All history cleared.');
   };
 
   if (authLoading) {
@@ -450,6 +452,33 @@ This Agreement shall be governed by and construed in accordance with the laws of
                     isCleaning={isCleaning}
                     onTrySample={handleTrySample}
                   />
+
+                  <AnimatePresence>
+                    {isOCRProcessing && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-center gap-4"
+                      >
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <Loader2 size={20} className="animate-spin" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-primary">OCR in progress ({ocrProgress}%)</p>
+                          <p className="text-[11px] text-muted-foreground/70">Extracting text from scanned document... This may take a moment.</p>
+                          <div className="mt-2 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-primary"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${ocrProgress}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   
                   <AnimatePresence>
                     {error && (

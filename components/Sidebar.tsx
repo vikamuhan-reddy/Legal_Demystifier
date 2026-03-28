@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Plus,
   LogOut,
-  LogIn
+  LogIn,
+  User
 } from 'lucide-react';
 import { OutputTab } from '@/types';
 import { cn } from '@/lib/utils';
@@ -128,6 +129,25 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="p-3 border-t border-border/20 space-y-2 bg-secondary/10">
+          {user && (
+            <Link href="/profile" passHref legacyBehavior>
+              <motion.a
+                whileHover={{ scale: 1.01, x: (isCollapsed && !isOpen) ? 0 : 2 }}
+                whileTap={{ scale: 0.99 }}
+                className={cn(
+                  "flex items-center gap-4 w-full px-4 py-2.5 rounded-lg transition-all duration-200 text-muted-foreground hover:bg-secondary hover:text-foreground group cursor-pointer",
+                  isCollapsed && !isOpen && "md:justify-center md:px-0"
+                )}
+                title={isCollapsed && !isOpen ? "Profile" : undefined}
+              >
+                <div className="shrink-0 transition-transform group-hover:scale-105">
+                  <User size={16} />
+                </div>
+                {(!isCollapsed || isOpen) && <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Profile</span>}
+              </motion.a>
+            </Link>
+          )}
+
           {user ? (
             <motion.button
               whileHover={{ scale: 1.01, x: (isCollapsed && !isOpen) ? 0 : 2 }}

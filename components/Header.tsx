@@ -1,8 +1,12 @@
-import React from 'react';
-import { History, Plus, Sun, Moon, Scale, User, FileText, Menu, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { History, Plus, Sun, Moon, Scale, User, FileText, Menu, X, LogOut, Settings } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
+
+import { UserDropdown } from './UserDropdown';
 
 interface HeaderProps {
     onNewChat: () => void;
@@ -13,6 +17,8 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onNewChat, onToggleHistory, onToggleSidebar, projectTitle }) => {
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const router = useRouter();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
@@ -94,17 +100,7 @@ const Header: React.FC<HeaderProps> = ({ onNewChat, onToggleHistory, onToggleSid
           </motion.button>
 
           <div className="flex items-center gap-4 pl-4 border-l border-border/10 ml-2">
-            <div className="flex flex-col items-end hidden sm:flex">
-              <span className="text-[7px] font-bold uppercase tracking-[0.3em] text-primary/20">Account</span>
-              <span className="text-[9px] font-bold tracking-tight text-foreground/40">vijayan20670@gmail.com</span>
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-primary border border-border/30 overflow-hidden shadow-sm"
-            >
-              <User className="h-4.5 w-4.5" />
-            </motion.button>
+            <UserDropdown showLogout={true} />
           </div>
         </div>
       </div>
