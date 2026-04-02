@@ -278,6 +278,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 {
                   "title": "Document Title",
                   "summary": "Executive Summary",
+                  "sentiment": "Positive | Negative | Neutral",
                   "clauses": {
                     "Clause Name": {
                       "explanation": "Simple explanation",

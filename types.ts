@@ -49,6 +49,7 @@ export interface DemystifiedDocument {
   };
   faq: FAQ[];
   title: string;
+  sentiment?: 'Positive' | 'Negative' | 'Neutral';
   suggestedActions: string[];
   structure?: DocumentStructure;
 }

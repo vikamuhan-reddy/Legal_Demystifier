@@ -23,7 +23,10 @@ import {
   Info,
   Layout,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Smile,
+  Meh,
+  Frown
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import ActionBar from './ActionBar';
@@ -324,6 +327,18 @@ const SummaryContent: React.FC<{ data: DemystifiedDocument; onRegenerate: () => 
     const clauseCount = Object.keys(data.clauses || {}).length;
     const entityCount = (data.entities?.parties?.length || 0) + (data.entities?.dates?.length || 0);
 
+    const sentimentColors = {
+        Positive: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+        Negative: "text-destructive bg-destructive/10 border-destructive/20",
+        Neutral: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+    };
+
+    const SentimentIcon = {
+        Positive: Smile,
+        Negative: Frown,
+        Neutral: Meh,
+    }[data.sentiment || 'Neutral'];
+
     return (
         <div className="space-y-10">
             <TabHeader 
@@ -337,27 +352,42 @@ const SummaryContent: React.FC<{ data: DemystifiedDocument; onRegenerate: () => 
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-4 gap-6"
             >
                 <motion.div variants={itemVariants} className="transition-all">
-                  <Card variant="risk" className="flex flex-col items-center justify-center py-6 text-center group border-destructive/10">
-                      <ShieldAlert className="h-6 w-6 mb-3 text-destructive opacity-40" />
-                      <span className="text-4xl font-serif tracking-tight font-medium">{riskCount}</span>
-                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Risks Detected</span>
+                  <Card variant="risk" className="py-6 text-center group border-destructive/10">
+                      <div className="flex flex-col items-center justify-center">
+                        <ShieldAlert className="h-6 w-6 mb-3 text-destructive opacity-40" />
+                        <span className="text-4xl font-serif tracking-tight font-medium">{riskCount}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Risks Detected</span>
+                      </div>
                   </Card>
                 </motion.div>
                 <motion.div variants={itemVariants} className="transition-all">
-                  <Card variant="info" className="flex flex-col items-center justify-center py-6 text-center group border-blue-500/10">
-                      <FileSignature className="h-6 w-6 mb-3 text-blue-500 opacity-40" />
-                      <span className="text-4xl font-serif tracking-tight font-medium">{clauseCount}</span>
-                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Key Clauses</span>
+                  <Card variant="info" className="py-6 text-center group border-blue-500/10">
+                      <div className="flex flex-col items-center justify-center">
+                        <FileSignature className="h-6 w-6 mb-3 text-blue-500 opacity-40" />
+                        <span className="text-4xl font-serif tracking-tight font-medium">{clauseCount}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Key Clauses</span>
+                      </div>
                   </Card>
                 </motion.div>
                 <motion.div variants={itemVariants} className="transition-all">
-                  <Card variant="success" className="flex flex-col items-center justify-center py-6 text-center group border-emerald-500/10">
-                      <Tag className="h-6 w-6 mb-3 text-emerald-500 opacity-40" />
-                      <span className="text-4xl font-serif tracking-tight font-medium">{entityCount}</span>
-                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Entities Found</span>
+                  <Card variant="success" className="py-6 text-center group border-emerald-500/10">
+                      <div className="flex flex-col items-center justify-center">
+                        <Tag className="h-6 w-6 mb-3 text-emerald-500 opacity-40" />
+                        <span className="text-4xl font-serif tracking-tight font-medium">{entityCount}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Entities Found</span>
+                      </div>
+                  </Card>
+                </motion.div>
+                <motion.div variants={itemVariants} className="transition-all">
+                  <Card className={cn("py-6 text-center group border-border/10", sentimentColors[data.sentiment || 'Neutral'])}>
+                      <div className="flex flex-col items-center justify-center">
+                        <SentimentIcon className="h-6 w-6 mb-3 opacity-40" />
+                        <span className="text-2xl font-serif tracking-tight font-medium uppercase tracking-widest">{data.sentiment || 'Neutral'}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mt-2">Sentiment</span>
+                      </div>
                   </Card>
                 </motion.div>
             </motion.div>
