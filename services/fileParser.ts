@@ -54,14 +54,16 @@ export const smartExtractFromPDF = async (
 };
 
 /**
- * Extracts text from a scanned PDF using OCR.
+ * Extracts text from a scanned PDF using OCR with a simple retry mechanism.
  * @param file The PDF file to parse.
  * @param onProgress Optional callback for progress updates (0-100).
+ * @param retries Number of retries for the entire process.
  * @returns A promise that resolves to the extracted text.
  */
 export const extractTextFromScannedPDF = async (
     file: File,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    retries = 2
 ): Promise<string> => {
     try {
         const arrayBuffer = await file.arrayBuffer();
@@ -119,23 +121,29 @@ export const extractTextFromScannedPDF = async (
 
         return fullText;
     } catch (error: any) {
-        console.error('OCR PDF Error:', error);
-        throw new Error(`Failed to extract text from scanned PDF: ${error.message}`);
+        console.error(`OCR PDF Error (retries left: ${retries}):`, error);
+        if (retries > 0) {
+            console.log(`Retrying OCR PDF extraction...`);
+            return extractTextFromScannedPDF(file, onProgress, retries - 1);
+        }
+        throw new Error(`Failed to extract text from scanned PDF after multiple attempts: ${error.message}`);
     }
 };
 
 /**
- * Extracts text from an image file using OCR (Tesseract.js).
+ * Extracts text from an image file using OCR (Tesseract.js) with a retry mechanism.
  * Handles SVG by rendering to canvas first.
  * @param file The image file to parse.
  * @param onOCRStart Optional callback triggered when OCR begins.
  * @param onProgress Optional callback for OCR progress updates (0-100).
+ * @param retries Number of retries for the entire process.
  * @returns A promise that resolves to the extracted text.
  */
 export const extractTextFromImage = async (
     file: File, 
     onOCRStart?: () => void,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    retries = 2
 ): Promise<string> => {
     try {
         onOCRStart?.();
@@ -184,8 +192,12 @@ export const extractTextFromImage = async (
         onProgress?.(100);
         return text;
     } catch (error: any) {
-        console.error('OCR Image Error:', error);
-        throw new Error(`Failed to extract text from image: ${error.message}`);
+        console.error(`OCR Image Error (retries left: ${retries}):`, error);
+        if (retries > 0) {
+            console.log(`Retrying OCR image extraction...`);
+            return extractTextFromImage(file, onOCRStart, onProgress, retries - 1);
+        }
+        throw new Error(`Failed to extract text from image after multiple attempts: ${error.message}`);
     }
 };
 

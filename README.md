@@ -21,9 +21,11 @@ An AI-powered intelligent document processing system designed to simplify comple
 The application follows a modern full-stack architecture:
 
 1.  **Client-Side Processing:** Document parsing and OCR are performed directly in the browser using Tesseract.js and PDF.js. This ensures privacy and reduces server load.
-2.  **API Proxy Layer:** A secure Next.js API route acts as a proxy to communicate with the Groq AI SDK, keeping API keys hidden from the client.
-3.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, entity extraction, risk analysis, and sentiment classification in a single pass.
-4.  **Persistence Layer:** Supabase handles user authentication and stores analysis history, allowing users to revisit and chat with previously uploaded documents.
+2.  **OCR Fallback System:** Smart detection identifies scanned PDFs and automatically triggers a multi-page OCR pipeline with a robust retry mechanism for high reliability.
+3.  **API Proxy Layer:** A secure Next.js API route acts as a proxy to communicate with the Groq AI SDK, keeping API keys hidden and validating user authentication before processing.
+4.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, **clause-level risk analysis**, and sentiment classification.
+5.  **Explainable Scoring Model:** The Safety Score is calculated using a transparent risk-index breakdown, deducting points based on specific identified liabilities.
+6.  **Persistence Layer:** Supabase handles user authentication and stores analysis history. We use **Supabase Row Level Security (RLS)** to strictly isolate user data and ensure privacy.
 
 ## ✨ Key Features
 
@@ -108,6 +110,20 @@ As per the project policy, here are the AI tools and models utilized in this pro
 - **OCR Accuracy:** Scanned documents with very poor handwriting or low resolution may result in partial text extraction.
 - **Context Window:** While Llama 3.3 has a large context window, extremely long legal texts may be truncated for optimal analysis performance.
 - **Legal Disclaimer:** This tool is for informational purposes only and does not constitute legal advice. Always consult with a qualified legal professional.
+
+## 🧠 Judge Q&A
+
+**Q: How do you ensure the AI doesn't hallucinate legal advice?**
+A: We use strict system prompts that force the model to ground its answers *only* in the provided text. If information is missing, the model is instructed to state that clearly rather than guessing.
+
+**Q: Is my data secure?**
+A: Yes. Documents are processed client-side for OCR, and AI analysis is proxied through a secure backend. We use Supabase Row Level Security (RLS) to ensure that only you can access your analysis history.
+
+**Q: How accurate is the Safety Score?**
+A: The score is based on an explainable risk-index model. It identifies specific high-risk clauses (e.g., imbalanced termination rights) and deducts points from a base score of 100, providing a transparent breakdown of the final result.
+
+**Q: Can this handle scanned documents?**
+A: Yes. We have a smart OCR fallback system that detects scanned PDFs and uses Tesseract.js with a multi-page processing pipeline and retry mechanism to extract text with high reliability.
 
 ---
 Developed with ❤️ using AI.

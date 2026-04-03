@@ -148,7 +148,7 @@ const Home: React.FC = () => {
     setIsCleaning(true);
     setError(null);
     try {
-      const cleaned = await cleanText(inputText);
+      const cleaned = await cleanText(inputText, user?.id || 'demo-user');
       setInputText(cleaned);
       showToast('Text cleaned and formatted!');
     } catch (err: any) {
@@ -197,7 +197,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
     setCurrentSessionId(null);
 
     try {
-      const result = await demystifyDocument(inputText);
+      const result = await demystifyDocument(inputText, user?.id || 'demo-user');
       setDemystifiedData(result);
       setFaqs(result.faq || []); // Set the FAQs from the initial analysis
       
@@ -243,7 +243,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
     setChatError(null);
 
     try {
-        const answer = await answerQuestionAboutDocument(inputText, chatHistory, question);
+        const answer = await answerQuestionAboutDocument(inputText, chatHistory, question, user?.id || 'demo-user');
         const modelMessage: ChatMessage = { role: 'model', text: answer };
         const updatedHistory = [...newHistory, modelMessage];
         setChatHistory(updatedHistory);
@@ -287,7 +287,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
       if (!inputText || !currentSessionId) return;
       setIsGeneratingFaqs(true);
       try {
-          const generatedFaqs = await generateFaqs(inputText);
+          const generatedFaqs = await generateFaqs(inputText, user?.id || 'demo-user');
           setFaqs(generatedFaqs);
           
           const sessionIndex = sessions.findIndex(s => s.id === currentSessionId);

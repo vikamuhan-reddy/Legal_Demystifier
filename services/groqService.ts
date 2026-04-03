@@ -21,37 +21,37 @@ const callGroqProxy = async (payload: object) => {
     }
 }
 
-export const demystifyDocument = async (legalText: string): Promise<DemystifiedDocument> => {
-    const data = await callGroqProxy({ action: 'demystify', legalText });
+export const demystifyDocument = async (legalText: string, userId: string): Promise<DemystifiedDocument> => {
+    const data = await callGroqProxy({ action: 'demystify', legalText, userId });
     return data as DemystifiedDocument;
 };
 
-export const answerQuestionAboutDocument = async (legalText: string, chatHistory: ChatMessage[], question: string): Promise<string> => {
-    const data = await callGroqProxy({ action: 'answer', legalText, chatHistory, question }) as any;
+export const answerQuestionAboutDocument = async (legalText: string, chatHistory: ChatMessage[], question: string, userId: string): Promise<string> => {
+    const data = await callGroqProxy({ action: 'answer', legalText, chatHistory, question, userId }) as any;
     if (typeof data.text !== 'string') {
         throw new Error("Invalid response format from server for question answer.");
     }
     return data.text;
 }
 
-export const cleanText = async (legalText: string): Promise<string> => {
-    const data = await callGroqProxy({ action: 'clean', legalText }) as any;
+export const cleanText = async (legalText: string, userId: string): Promise<string> => {
+    const data = await callGroqProxy({ action: 'clean', legalText, userId }) as any;
     if (typeof data.text !== 'string') {
         throw new Error("Invalid response format from server for text cleaning.");
     }
     return data.text;
 }
 
-export const generateFaqs = async (legalText: string): Promise<FAQ[]> => {
-    const data = await callGroqProxy({ action: 'generateFaqs', legalText });
+export const generateFaqs = async (legalText: string, userId: string): Promise<FAQ[]> => {
+    const data = await callGroqProxy({ action: 'generateFaqs', legalText, userId });
     if (!Array.isArray(data)) {
         throw new Error("Invalid response format from server for FAQs.");
     }
     return data as FAQ[];
 }
 
-export const analyzeRisks = async (legalText: string): Promise<RiskAnalysis[]> => {
-    const data = await callGroqProxy({ action: 'analyzeRisks', legalText });
+export const analyzeRisks = async (legalText: string, userId: string): Promise<RiskAnalysis[]> => {
+    const data = await callGroqProxy({ action: 'analyzeRisks', legalText, userId });
     if (!Array.isArray(data)) {
         throw new Error("Invalid response format from server for risk analysis.");
     }

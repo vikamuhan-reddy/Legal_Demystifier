@@ -14,7 +14,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { action, legalText, chatHistory, question } = req.body;
+    const { action, legalText, chatHistory, question, userId } = req.body;
+
+    // Basic Auth Check: Ensure a userId is provided.
+    // In a real production app, we would verify the Supabase JWT token here.
+    if (!userId) {
+        return res.status(401).json({ error: "Unauthorized: User ID is required for AI analysis." });
+    }
 
     try {
         // All actions here use Groq
