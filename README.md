@@ -3,7 +3,7 @@
 An AI-powered intelligent document processing system designed to simplify complex legal documents. This tool extracts, analyzes, and summarizes content from various formats (PDF, DOCX, Images), helping users understand legal jargon, identify risks, and extract key information instantly.
 
 ## 🚀 Live Demo
-**Live URL:** [https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app](https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app)
+**Live URL:** [Legal Demystifier](https://legal-demystifier.vercel.app)
 
 ## 🛠 Tech Stack
 
