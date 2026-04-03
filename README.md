@@ -1,58 +1,111 @@
-# Legal Document Demystifier (Next.js)
+# 📜 Legal Document Demystifier
 
-This is an AI-powered tool to simplify complex legal documents. This version is built with Next.js for a modern, performant frontend.
+An AI-powered intelligent document processing system designed to simplify complex legal documents. This tool extracts, analyzes, and summarizes content from various formats (PDF, DOCX, Images), helping users understand legal jargon, identify risks, and extract key information instantly.
 
-## Features
+## 🚀 Live Demo
+**Live URL:** [https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app](https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app)
 
--   **Plain-language Summaries**: Get a simple, easy-to-understand summary of your legal documents.
--   **Key Clause Identification**: Automatically highlights the most important clauses and explains their meaning.
--   **Risk & Solution Analysis**: Identifies potential risks and suggests actionable solutions.
--   **Interactive Q&A**: Ask follow-up questions about the document in a conversational chat.
--   **Generated FAQs**: On-demand generation of Frequently Asked Questions based on the document.
--   **Actionable Next Steps**: Provides a checklist of suggested actions after analysis.
--   **Secure API Routes**: Uses a Next.js API route to protect your Gemini API key.
--   **File Uploads**: Supports analyzing `.pdf` and `.docx` files.
--   **Light/Dark Mode**: A sleek interface that respects your theme preference.
--   **Local History**: Saves your analysis sessions directly in your browser.
+## 🛠 Tech Stack
 
-## Local Setup & Deployment Guide
+- **Frontend:** Next.js (Pages Router), TypeScript, Tailwind CSS
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
+- **Backend:** Next.js API Routes (Serverless Functions)
+- **Database & Auth:** Supabase (PostgreSQL)
+- **AI Models:** Groq (Llama 3.3 70B Versatile)
+- **OCR Engine:** Tesseract.js (Client-side)
+- **Document Parsing:** PDF.js (PDF), Mammoth (DOCX)
+
+## 🏗 Architecture Overview
+
+The application follows a modern full-stack architecture:
+
+1.  **Client-Side Processing:** Document parsing and OCR are performed directly in the browser using Tesseract.js and PDF.js. This ensures privacy and reduces server load.
+2.  **API Proxy Layer:** A secure Next.js API route acts as a proxy to communicate with the Groq AI SDK, keeping API keys hidden from the client.
+3.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, entity extraction, risk analysis, and sentiment classification in a single pass.
+4.  **Persistence Layer:** Supabase handles user authentication and stores analysis history, allowing users to revisit and chat with previously uploaded documents.
+
+## ✨ Key Features
+
+- **Multi-format Support:** Seamlessly process PDF, DOCX, and images (PNG, JPG, SVG).
+- **OCR Integration:** Extract text from scanned documents and images with real-time progress tracking.
+- **AI Summarization:** Get a high-level executive summary of any legal document.
+- **Risk Detection:** Automatically identify imbalanced clauses and potential liabilities.
+- **Entity Extraction:** Extract parties, dates, jurisdictions, and financial terms.
+- **Sentiment Analysis:** Classify the document's overall tone (Positive, Negative, Neutral).
+- **Interactive Chat:** Ask follow-up questions about specific clauses or obligations.
+- **History Management:** Securely save and manage your analysis history via Supabase.
+
+## 🤖 AI Tools Used
+
+As per the project policy, here are the AI tools and models utilized in this project:
+
+1.  **Google AI Studio Build:** Used as the primary development assistant for code generation, architecture design, and UI/UX implementation.
+2.  **Groq (Llama 3.3 70B Versatile):** The core reasoning engine used for document demystification, risk analysis, and the interactive chat assistant.
+3.  **Tesseract.js:** An AI-based OCR engine used for extracting text from images and scanned PDFs.
+
+## ⚙️ Setup Instructions
 
 ### Prerequisites
-- Node.js (v18 or newer)
-- A Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+- Node.js 18+ 
+- A Supabase Project
+- A Groq API Key
 
-### Local Setup
+### Installation
 
-1.  **Clone the Repository**:
+1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/your-repository-name.git
-    cd your-repository-name
+    git clone https://github.com/YOUR_USERNAME/legal-document-demystifier.git
+    cd legal-document-demystifier
     ```
 
-2.  **Install Dependencies**:
+2.  **Install dependencies:**
     ```bash
     npm install
     ```
 
-3.  **Set Environment Variables**: Create a file named `.env.local` in the root of your project and add your Gemini API key.
-    ```
-    # File: .env.local
-    API_KEY="YOUR_GEMINI_API_KEY"
+3.  **Configure Environment Variables:**
+    Create a `.env.local` file in the root directory and add the following:
+    ```env
+    GROQ_API_KEY=your_groq_api_key
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
     ```
 
-4.  **Run the Development Server**:
+4.  **Database Setup:**
+    Run the following SQL in your Supabase SQL Editor to create the necessary table:
+    ```sql
+    CREATE TABLE documents (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID REFERENCES auth.users(id),
+      title TEXT,
+      original_text TEXT,
+      cleaned_text TEXT,
+      summary TEXT,
+      sentiment TEXT,
+      clauses JSONB,
+      risks JSONB,
+      entities JSONB,
+      suggested_actions JSONB,
+      chat_history JSONB DEFAULT '[]'::jsonb,
+      faqs JSONB DEFAULT '[]'::jsonb,
+      structure JSONB,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+    );
+    ```
+
+5.  **Run the development server:**
     ```bash
     npm run dev
     ```
-    The application will be available at `http://localhost:3000`.
+    Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-### Deploy to Vercel
+## ⚠️ Known Limitations
 
-1.  **Fork the Repository**: Start by forking this repository to your own GitHub account.
+- **Document Size:** Extremely large documents (50+ pages) may experience slower processing times due to client-side OCR limits.
+- **OCR Accuracy:** Scanned documents with very poor handwriting or low resolution may result in partial text extraction.
+- **Context Window:** While Llama 3.3 has a large context window, extremely long legal texts may be truncated for optimal analysis performance.
+- **Legal Disclaimer:** This tool is for informational purposes only and does not constitute legal advice. Always consult with a qualified legal professional.
 
-2.  **Deploy Project**: Push your forked repository to Vercel.
-
-3.  **Set Environment Variables**: In your Vercel project settings, add your Gemini API key:
-    *   `API_KEY`: Your Google Gemini API key.
-
-4.  **Done!**: Vercel will build and deploy your application.
+---
+Developed with ❤️ using AI.

@@ -90,7 +90,7 @@ const Home: React.FC = () => {
         router.replace('/', undefined, { shallow: true });
       }
     }
-  }, [router.isReady, router.query, sessions.length, handleLoadSession]);
+  }, [router.isReady, router.query, sessions.length, handleLoadSession, router]);
 
   // Load history from local storage or Supabase
   useEffect(() => {

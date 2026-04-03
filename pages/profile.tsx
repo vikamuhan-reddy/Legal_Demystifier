@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,17 +22,7 @@ export default function ProfilePage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth');
-    }
-    if (user) {
-      setName(user.name || '');
-      loadHistory();
-    }
-  }, [user, loading, router]);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     if (!user) return;
     setIsLoadingHistory(true);
     try {
@@ -47,7 +37,17 @@ export default function ProfilePage() {
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, [user, isDemoMode]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth');
+    }
+    if (user) {
+      setName(user.name || '');
+      loadHistory();
+    }
+  }, [user, loading, router, loadHistory]);
 
   const handleDeleteSession = async (id: string) => {
     if (!user) return;
