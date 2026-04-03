@@ -8,10 +8,27 @@ interface ChatMessage {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+        return res.status(200).end();
+    }
+
+    // Health Check for GET requests
+    if (req.method === 'GET') {
+        return res.status(200).json({ 
+            status: "success", 
+            message: "Legal Proxy API is online.",
+            methods: ["POST", "GET", "OPTIONS"]
+        });
+    }
+
     console.log(`[API Proxy] Received ${req.method} request for action: ${req.body?.action || 'unknown'}`);
     
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+        return res.status(405).json({ error: 'Method Not Allowed. Please use POST.' });
     }
 
     // Handle different body formats (string or object)

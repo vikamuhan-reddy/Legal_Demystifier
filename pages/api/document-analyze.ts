@@ -10,6 +10,24 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+        return res.status(200).end();
+    }
+
+    // Health Check for GET requests
+    if (req.method === 'GET') {
+        return res.status(200).json({ 
+            status: "success", 
+            message: "Legal Document Analysis API is online and ready for POST requests.",
+            endpoint: "/api/document-analyze",
+            methods: ["POST", "GET", "OPTIONS"]
+        });
+    }
+
     // Quick ping test to verify function startup
     if (req.body?.action === 'ping') {
         return res.status(200).json({ status: "success", message: "pong" });
@@ -18,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(`[API Analyze] Received ${req.method} request for file: ${req.body?.fileName || 'unknown'}`);
     
     if (req.method !== 'POST') {
-        return res.status(405).json({ status: "error", error: 'Method Not Allowed' });
+        return res.status(405).json({ status: "error", error: 'Method Not Allowed. Please use POST for document analysis.' });
     }
 
     // 1. API Authentication (Section 6)
@@ -28,7 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 2. Request Body Fields (Section 8)
-    const { fileName, fileType, fileBase64 } = req.body;
+    const { fileName, fileType: rawFileType, fileBase64 } = req.body;
+    const fileType = (rawFileType || "").toLowerCase().trim();
     
     // Support both the hackathon spec and my frontend's existing format
     let legalText = req.body.legalText || "";
@@ -37,10 +56,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 3. Document Processing (Section 5)
         if (fileBase64 && !legalText) {
             // Clean Base64 (remove data URI prefix if present)
-            let cleanBase64 = fileBase64;
-            if (fileBase64.includes(';base64,')) {
+            let cleanBase64 = fileBase64.trim();
+            if (cleanBase64.includes(';base64,')) {
                 console.log(`[API Analyze] Stripping data URI prefix...`);
-                cleanBase64 = fileBase64.split(';base64,')[1];
+                cleanBase64 = cleanBase64.split(';base64,')[1];
             }
 
             if (cleanBase64.length < 50) {
@@ -82,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         console.log(`[API Analyze] Parsing DOCX...`);
                         const result = await mammoth.extractRawText({ buffer });
                         legalText = result.value;
-                    } else if (fileType === 'image' || ['png', 'jpg', 'jpeg'].includes(fileType)) {
+                    } else if (fileType === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(fileType)) {
                         console.log(`[API Analyze] Loading tesseract.js...`);
                         let Tesseract;
                         try {
@@ -95,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
                         legalText = text;
                     } else {
-                        console.log(`[API Analyze] Unsupported file type: ${fileType}`);
+                        console.log(`[API Analyze] Unsupported or unknown file type: ${fileType}`);
                         legalText = ""; // Trigger fallback
                     }
                 } catch (parseError) {
