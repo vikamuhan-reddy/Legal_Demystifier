@@ -6,7 +6,7 @@ An AI-powered intelligent document processing system designed to simplify comple
 **Live URL:** [https://legal-demystifier.vercel.app](https://legal-demystifier.vercel.app)
 
 # Demo Viode
-**Youtube URL:**[https://youtu.be/Yo_T1Eb5Yac](YouTube Link)
+**Youtube URL:**[YouTube Link](https://youtu.be/Yo_T1Eb5Yac)
 
 ## 🛠 Tech Stack
 
