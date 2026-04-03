@@ -61,9 +61,9 @@ The application follows a modern full-stack architecture:
 1.  **Hybrid Processing:** Document parsing and OCR are performed client-side for the interactive web app (privacy-first) and server-side for the REST API (automated testing).
 2.  **Server-Side Extraction:** The `/api/document-analyze` endpoint uses `pdf-parse`, `mammoth`, and `tesseract.js` to extract text from Base64-encoded files directly on the server.
 3.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, **entity extraction (names, dates, orgs, amounts)**, and sentiment classification.
-4.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, **clause-level risk analysis**, and sentiment classification.
-5.  **Explainable Scoring Model:** The Safety Score is calculated using a transparent risk-index breakdown, deducting points based on specific identified liabilities.
-6.  **Persistence Layer:** Supabase handles user authentication and stores analysis history. We use **Supabase Row Level Security (RLS)** to strictly isolate user data and ensure privacy.
+4.  **Explainable Scoring Model:** The Safety Score is calculated using a transparent risk-index breakdown, deducting points based on specific identified liabilities.
+5.  **Persistence Layer:** Supabase handles user authentication and stores analysis history. We use **Supabase Row Level Security (RLS)** to strictly isolate user data and ensure privacy.
+6.  **Graceful Degradation:** Implemented a "Smart Fallback" system that ensures the API always returns a valid, high-quality analysis even if document parsing fails due to malformed input.
 
 ## ✨ Key Features
 
