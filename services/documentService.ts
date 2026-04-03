@@ -7,6 +7,7 @@ export interface SupabaseDocument {
   original_text: string;
   cleaned_text: string | null;
   summary: string | null;
+  sentiment: string | null;
   clauses: any;
   risks: any;
   entities: any;
@@ -27,12 +28,13 @@ export const documentService = {
     
     const { data, error } = await supabase
       .from('documents')
-      .insert({
+      .upsert({
         id: session.id,
         user_id: userId,
         original_text: originalText,
-        cleaned_text: originalText, // Using original as cleaned for now or we can pass cleaned specifically
+        cleaned_text: originalText,
         summary: demystifiedData.summary,
+        sentiment: demystifiedData.sentiment,
         clauses: demystifiedData.clauses,
         risks: demystifiedData.risks,
         entities: demystifiedData.entities,
@@ -43,7 +45,7 @@ export const documentService = {
         faqs: faqs || [],
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -59,6 +61,7 @@ export const documentService = {
     if (updates.faqs) supabaseUpdates.faqs = updates.faqs;
     if (updates.demystifiedData) {
         supabaseUpdates.summary = updates.demystifiedData.summary;
+        supabaseUpdates.sentiment = updates.demystifiedData.sentiment;
         supabaseUpdates.clauses = updates.demystifiedData.clauses;
         supabaseUpdates.risks = updates.demystifiedData.risks;
         supabaseUpdates.entities = updates.demystifiedData.entities;
@@ -73,7 +76,7 @@ export const documentService = {
       .eq('id', sessionId)
       .eq('user_id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -99,6 +102,7 @@ export const documentService = {
       createdAt: new Date(doc.created_at).getTime(),
       demystifiedData: {
         summary: doc.summary || '',
+        sentiment: doc.sentiment as any,
         clauses: doc.clauses || {},
         risks: doc.risks || [],
         entities: doc.entities || { parties: [], dates: [], jurisdiction: '', financialTerms: [], obligations: [] },
