@@ -447,9 +447,29 @@ const SummaryContent: React.FC<{ data: DemystifiedDocument; onRegenerate: () => 
                                 </motion.span>
                             </div>
                         </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">Safety Score</span>
-                          <p className="text-[9px] text-muted-foreground/60 leading-tight">Risk Index</p>
+                        <div className="space-y-3 w-full">
+                            <div className="space-y-1">
+                              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">Safety Score</span>
+                              <p className="text-[9px] text-muted-foreground/60 leading-tight">Risk Index Breakdown</p>
+                            </div>
+                            <div className="pt-3 border-t border-border/20 w-full space-y-1.5">
+                                <div className="flex justify-between items-center text-[8px] uppercase tracking-wider">
+                                    <span className="text-muted-foreground">Base Score</span>
+                                    <span className="text-emerald-500 font-bold">100</span>
+                                </div>
+                                {data.risks?.map((risk, idx) => (
+                                    <div key={idx} className="flex justify-between items-start text-[8px] uppercase tracking-wider gap-2">
+                                        <span className="text-muted-foreground text-left line-clamp-1">{risk.risk}</span>
+                                        <span className="text-destructive font-bold shrink-0">-10</span>
+                                    </div>
+                                ))}
+                                <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest pt-1 border-t border-border/10 mt-1">
+                                    <span>Final</span>
+                                    <span className={cn(riskCount > 5 ? "text-destructive" : riskCount > 2 ? "text-amber-500" : "text-emerald-500")}>
+                                        {Math.max(0, 100 - (riskCount * 10))}%
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

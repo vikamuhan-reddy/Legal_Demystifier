@@ -3,7 +3,7 @@
 An AI-powered intelligent document processing system designed to simplify complex legal documents. This tool extracts, analyzes, and summarizes content from various formats (PDF, DOCX, Images), helping users understand legal jargon, identify risks, and extract key information instantly.
 
 ## 🚀 Live Demo
-**Live URL:** [Legal Demystifier](https://legal-demystifier.vercel.app)
+**Live URL:** [https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app](https://ais-dev-w7suuxckwcgvgqzx4obxtc-448932192783.asia-east1.run.app)
 
 ## 🛠 Tech Stack
 
@@ -41,8 +41,10 @@ The application follows a modern full-stack architecture:
 As per the project policy, here are the AI tools and models utilized in this project:
 
 1.  **Google AI Studio Build:** Used as the primary development assistant for code generation, architecture design, and UI/UX implementation.
-2.  **Groq (Llama 3.3 70B Versatile):** The core reasoning engine used for document demystification, risk analysis, and the interactive chat assistant.
-3.  **Tesseract.js:** An AI-based OCR engine used for extracting text from images and scanned PDFs.
+2.  **ChatGPT (OpenAI):** Utilized as a secondary assistant for building extra features and identifying potential flaws during the AI evaluation process.
+3.  **Claude (Anthropic):** Used as an assistant for feature enhancement and technical auditing to ensure high-quality outputs.
+4.  **Groq (Llama 3.3 70B Versatile):** The core reasoning engine used for document demystification, risk analysis, and the interactive chat assistant.
+5.  **Tesseract.js:** An AI-based OCR engine used for extracting text from images and scanned PDFs.
 
 ## ⚙️ Setup Instructions
 

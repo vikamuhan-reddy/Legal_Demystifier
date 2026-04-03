@@ -381,10 +381,6 @@ const LandingPage: React.FC = () => {
             <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-[0.3em]">
               © 2026 LegalDemystifier Intelligence. All rights reserved.
             </p>
-            <div className="flex items-center gap-10">
-              <a href="#" className="text-muted-foreground/40 hover:text-primary transition-colors"><Github size={18} /></a>
-              <a href="#" className="text-muted-foreground/40 hover:text-primary transition-colors"><Star size={18} /></a>
-            </div>
           </div>
         </div>
       </footer>

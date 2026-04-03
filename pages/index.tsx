@@ -15,7 +15,7 @@ import OutputSkeleton from '@/components/OutputSkeleton';
 import LandingPage from '@/components/LandingPage';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, FileSearch, AlertCircle, MessageSquare, Loader2 } from 'lucide-react';
+import { Sparkles, FileSearch, AlertCircle, MessageSquare, Loader2, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
@@ -486,7 +486,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
                         <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <Loader2 size={20} className="animate-spin" />
                         </div>
-                        <div>
+                        <div className="flex-grow">
                           <p className="text-xs font-bold uppercase tracking-widest text-primary">OCR in progress ({ocrProgress}%)</p>
                           <p className="text-[11px] text-muted-foreground/70">Extracting text from scanned document... This may take a moment.</p>
                           <div className="mt-2 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
@@ -497,6 +497,39 @@ This Agreement shall be governed by and construed in accordance with the laws of
                               transition={{ duration: 0.3 }}
                             />
                           </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {!isOCRProcessing && inputText && selectedFile && !demystifiedData && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mt-8 p-6 bg-secondary/5 border border-border/30 rounded-3xl"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                              <CheckCircle size={16} />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-foreground">Extraction Complete</p>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Review the extracted text before analysis</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="h-9 px-6 rounded-xl bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2"
+                          >
+                            {isLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                            Start AI Analysis
+                          </button>
+                        </div>
+                        <div className="max-h-40 overflow-y-auto p-4 bg-background rounded-xl border border-border/20 font-mono text-[10px] text-muted-foreground/80 leading-relaxed scrollbar-hide">
+                          {inputText}
                         </div>
                       </motion.div>
                     )}

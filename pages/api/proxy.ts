@@ -268,7 +268,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 ### REQUIREMENTS:
                 1. **Summary**: Explain the document in simple English. No legal jargon. Clear and concise. Explain what the user should care about.
                 2. **Clauses**: Identify key clauses (Termination, Liability, Payment, Confidentiality, Governing Law, etc.). For each, provide a simple explanation AND the exact original wording (verbatim).
-                3. **Risks**: Identify potential risks, liabilities, or significant obligations. For each, provide a specific, actionable solution or mitigation strategy.
+                3. **Risks**: Identify potential risks, liabilities, or significant obligations. 
+                   - **CRITICAL**: DO NOT use generic titles like "Breach of Contract" or "Confidentiality Risk". 
+                   - **REQUIRED**: Each risk title must be specific to the document's content (e.g., "Unilateral 24-hour Termination Right" instead of "Termination Risk").
+                   - **REQUIRED**: Provide a specific, actionable solution or mitigation strategy for each.
                 4. **Entities**: Extract key parties, dates, jurisdiction, financial terms, and obligations.
                 5. **FAQ**: Generate exactly 5 important questions and answers focused on user concerns, rights, and obligations.
 
