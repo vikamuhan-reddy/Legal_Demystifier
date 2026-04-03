@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Groq from "groq-sdk";
-import pdf from 'pdf-parse';
+const pdf = require('pdf-parse');
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
 
@@ -13,6 +13,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    console.log(`[API Analyze] Received ${req.method} request for file: ${req.body?.fileName || 'unknown'}`);
+    
     if (req.method !== 'POST') {
         return res.status(405).json({ status: "error", error: 'Method Not Allowed' });
     }

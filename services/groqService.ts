@@ -16,7 +16,13 @@ const callGroqProxy = async (payload: object) => {
         return data;
     } catch (error) {
         console.error("API proxy call failed:", error);
-        const message = error instanceof Error ? error.message : "An unknown error occurred with the server.";
+        let message = error instanceof Error ? error.message : "An unknown error occurred with the server.";
+        
+        // Handle specific browser network errors
+        if (message.toLowerCase().includes('load failed') || message.toLowerCase().includes('failed to fetch')) {
+            message = "Chatbot connection failed. This is usually caused by an ad-blocker, VPN, or network restriction. Please try disabling your ad-blocker or using an Incognito window.";
+        }
+        
         throw new Error(message);
     }
 }

@@ -8,6 +8,8 @@ interface ChatMessage {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    console.log(`[API Proxy] Received ${req.method} request for action: ${req.body?.action || 'unknown'}`);
+    
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
