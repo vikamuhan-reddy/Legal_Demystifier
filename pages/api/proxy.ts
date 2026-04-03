@@ -49,19 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // All actions here use Groq
         if (!GROQ_API_KEY || GROQ_API_KEY.length === 0) {
-            return res.status(500).json({ 
-                error: "GROQ_API_KEY is missing or invalid in Vercel.",
-                fileName: fileName || "document.pdf",
-                summary: "Configuration Error"
-            });
-        }
-        const groq = new Groq({ apiKey: GROQ_API_KEY });
-
-        if (action === "answer") {
-            // ... (rest of the logic remains same, but we'll wrap the demystify part)
             const envKeys = Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API') || k.includes('KEY'));
             return res.status(500).json({ 
                 error: "GROQ_API_KEY is missing or invalid in Vercel.",
+                fileName: fileName || "document.pdf",
+                summary: "Configuration Error",
                 debugInfo: {
                     rawExists: rawKey.length > 0,
                     rawLength: rawKey.length,
