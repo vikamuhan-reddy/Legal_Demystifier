@@ -7,20 +7,29 @@ interface ChatMessage {
   text: string;
 }
 
-// Clean the API key to remove any non-ASCII characters (like bullet points) that might have been accidentally included.
-const GROQ_API_KEY = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.replace(/[^\x00-\x7f]/g, "").trim() : undefined;
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
+
+    // Clean the API key to remove any non-ASCII characters (like bullet points) that might have been accidentally included.
+    const GROQ_API_KEY = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.replace(/[^\x00-\x7f]/g, "").trim() : undefined;
 
     const { action, legalText, chatHistory, question, userId, fileName } = req.body;
 
     try {
         // All actions here use Groq
         if (!GROQ_API_KEY) {
-            return res.status(500).json({ error: "GROQ_API_KEY is not configured." });
+            const envKeys = Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API') || k.includes('KEY'));
+            return res.status(500).json({ 
+                error: "GROQ_API_KEY is not configured in Vercel environment variables.",
+                debugInfo: {
+                    isUndefined: process.env.GROQ_API_KEY === undefined,
+                    isEmpty: process.env.GROQ_API_KEY === "",
+                    detectedRelatedKeys: envKeys
+                },
+                tip: "Ensure you have added GROQ_API_KEY in Vercel Project Settings > Environment Variables. After adding it, you MUST trigger a NEW DEPLOYMENT (Redeploy) for the changes to take effect."
+            });
         }
         const groq = new Groq({ apiKey: GROQ_API_KEY });
 
