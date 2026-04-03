@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, Mail, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, ShieldCheck, Clock, FileText, ChevronRight, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
+import { documentService } from '@/services/documentService';
+import * as historyService from '@/services/historyService';
+import type { ChatSession } from '@/types';
 
 export default function ProfilePage() {
   const { user, loading, updateProfile, logout, isDemoMode } = useAuth();
@@ -16,6 +19,8 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -23,8 +28,42 @@ export default function ProfilePage() {
     }
     if (user) {
       setName(user.name || '');
+      loadHistory();
     }
   }, [user, loading, router]);
+
+  const loadHistory = async () => {
+    if (!user) return;
+    setIsLoadingHistory(true);
+    try {
+      if (!isDemoMode) {
+        const supabaseHistory = await documentService.fetchUserDocuments(user.id);
+        setSessions(supabaseHistory);
+      } else {
+        setSessions(historyService.getLocalHistory());
+      }
+    } catch (err) {
+      console.error('Failed to load history:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleDeleteSession = async (id: string) => {
+    if (!user) return;
+    try {
+      if (!isDemoMode) {
+        await documentService.deleteDocument(user.id, id);
+      }
+      const updated = sessions.filter(s => s.id !== id);
+      setSessions(updated);
+      if (isDemoMode) {
+        historyService.saveLocalHistory(updated);
+      }
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+    }
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +99,7 @@ export default function ProfilePage() {
 
       <Header 
         onNewChat={() => router.push('/')} 
-        onToggleHistory={() => {}} 
+        onToggleHistory={() => router.push('/?history=open')} 
         onToggleSidebar={() => {}} 
       />
 
@@ -213,6 +252,71 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
+
+        {/* History Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-12"
+        >
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Clock size={16} />
+              </div>
+              <h2 className="text-xl font-serif font-bold tracking-tight">Recent Activity</h2>
+            </div>
+            <button 
+              onClick={() => router.push('/')}
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary hover:underline"
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {isLoadingHistory ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-primary/20" />
+              </div>
+            ) : sessions.length > 0 ? (
+              sessions.slice(0, 5).map((session) => (
+                <div 
+                  key={session.id}
+                  className="group flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/20 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer"
+                  onClick={() => router.push(`/?session=${session.id}`)}
+                >
+                  <div className="h-10 w-10 rounded-xl bg-secondary/50 flex items-center justify-center text-primary/30 group-hover:text-primary/60 transition-colors">
+                    <FileText size={18} />
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="text-sm font-medium truncate mb-0.5">{session.demystifiedData.title || 'Untitled Document'}</h4>
+                    <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+                      {new Date(session.createdAt).toLocaleDateString()} • {session.demystifiedData.sentiment || 'Neutral'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSession(session.id);
+                      }}
+                      className="p-2 rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <ChevronRight size={16} className="text-muted-foreground/20 group-hover:text-primary/40 transition-colors" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 bg-secondary/10 rounded-3xl border border-dashed border-border/40">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">No recent activity found</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </main>
     </div>
   );

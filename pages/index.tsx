@@ -60,6 +60,38 @@ const Home: React.FC = () => {
     setToastMessage(message);
   };
 
+  const handleLoadSession = useCallback((sessionId: string) => {
+      const session = sessions.find(s => s.id === sessionId);
+      if (session) {
+          setCurrentSessionId(session.id);
+          setInputText(session.originalText);
+          setDemystifiedData(session.demystifiedData);
+          setChatHistory(session.chatHistory);
+          setFaqs(session.faqs || null);
+          setActiveTab(OutputTab.SUMMARY);
+          setIsHistoryPanelOpen(false); // Close panel on load
+      }
+  }, [sessions]);
+
+  // Handle query parameters for history and session loading
+  useEffect(() => {
+    if (router.isReady && sessions.length > 0) {
+      const { history, session } = router.query;
+      
+      if (history === 'open') {
+        setIsHistoryPanelOpen(true);
+        // Clear the query param to avoid re-opening on refresh
+        router.replace('/', undefined, { shallow: true });
+      }
+      
+      if (session && typeof session === 'string') {
+        handleLoadSession(session);
+        // Clear the query param
+        router.replace('/', undefined, { shallow: true });
+      }
+    }
+  }, [router.isReady, router.query, sessions.length, handleLoadSession]);
+
   // Load history from local storage or Supabase
   useEffect(() => {
     const loadHistory = async () => {
@@ -167,11 +199,14 @@ This Agreement shall be governed by and construed in accordance with the laws of
     try {
       const result = await demystifyDocument(inputText);
       setDemystifiedData(result);
+      setFaqs(result.faq || []); // Set the FAQs from the initial analysis
+      
       const newSession: ChatSession = {
         id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
         demystifiedData: result,
         originalText: inputText,
         chatHistory: [],
+        faqs: result.faq || [], // Store FAQs in the session too
         createdAt: Date.now(),
       };
       
@@ -284,19 +319,6 @@ This Agreement shall be governed by and construed in accordance with the laws of
     setFaqs(null);
     setError(null);
     setCurrentSessionId(null);
-  };
-  
-  const handleLoadSession = (sessionId: string) => {
-      const session = sessions.find(s => s.id === sessionId);
-      if (session) {
-          setCurrentSessionId(session.id);
-          setInputText(session.originalText);
-          setDemystifiedData(session.demystifiedData);
-          setChatHistory(session.chatHistory);
-          setFaqs(session.faqs || null);
-          setActiveTab(OutputTab.SUMMARY);
-          setIsHistoryPanelOpen(false); // Close panel on load
-      }
   };
 
   const handleDeleteSession = async (sessionId: string) => {

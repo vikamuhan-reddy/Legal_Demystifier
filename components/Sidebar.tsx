@@ -6,6 +6,7 @@ import {
   Key, 
   AlertTriangle, 
   MessageSquare, 
+  HelpCircle,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -80,6 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { tab: OutputTab.ENTITIES, icon: <Tag size={16} /> },
     { tab: OutputTab.CLAUSES, icon: <Key size={16} /> },
     { tab: OutputTab.RISKS, icon: <AlertTriangle size={16} /> },
+    { tab: OutputTab.FAQ, icon: <HelpCircle size={16} /> },
     { tab: OutputTab.CHAT, icon: <MessageSquare size={16} /> },
   ];
 

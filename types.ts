@@ -60,6 +60,7 @@ export enum OutputTab {
   ENTITIES = 'Key Entities',
   CLAUSES = 'Key Clauses',
   RISKS = 'Risks & Solutions',
+  FAQ = 'FAQs',
   CHAT = 'Chat Assistant',
 }
 

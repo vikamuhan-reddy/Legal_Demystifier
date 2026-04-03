@@ -42,7 +42,7 @@ export const documentService = {
         title: demystifiedData.title,
         structure: demystifiedData.structure,
         chat_history: chatHistory,
-        faqs: faqs || [],
+        faqs: faqs || demystifiedData.faq || [],
       })
       .select()
       .maybeSingle();

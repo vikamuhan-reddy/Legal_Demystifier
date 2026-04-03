@@ -26,7 +26,9 @@ import {
   AlertCircle,
   Smile,
   Meh,
-  Frown
+  Frown,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import ActionBar from './ActionBar';
@@ -583,6 +585,64 @@ const RisksContent: React.FC<{ risks: RiskAndSolution[]; onRegenerate: () => voi
     );
 };
 
+const FAQContent: React.FC<{ 
+  faqs: FAQ[] | null; 
+  isGenerating: boolean; 
+  onGenerate: () => void; 
+  onRegenerate: () => void; 
+  showToast: (message: string) => void; 
+}> = ({ faqs, isGenerating, onGenerate, onRegenerate, showToast }) => {
+    if (!faqs || faqs.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <HelpCircle className="h-12 w-12 text-muted-foreground/30" />
+                <h3 className="mt-4 text-lg font-serif">No FAQs Generated</h3>
+                <p className="text-sm text-muted-foreground mb-6">Generate frequently asked questions to better understand this document.</p>
+                <button
+                    onClick={onGenerate}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 h-11 px-8 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-[0.15em] shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50"
+                >
+                    {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    Generate FAQs
+                </button>
+            </div>
+        );
+    }
+
+    const textToCopy = faqs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n');
+
+    return (
+        <div className="space-y-6">
+            <TabHeader 
+              title="Frequently Asked Questions" 
+              description="Common questions and answers derived from the document's content."
+              icon={<HelpCircle />}
+            />
+            
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-1 gap-6"
+            >
+                {faqs.map((faq, index) => (
+                    <CollapsibleSection 
+                      key={index} 
+                      title={faq.question} 
+                      icon={<HelpCircle className="h-4 w-4 opacity-40" />}
+                    >
+                      <p className="text-base md:text-lg text-foreground font-normal leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </CollapsibleSection>
+                ))}
+            </motion.div>
+            <ActionBar textToCopy={textToCopy} onRegenerate={onRegenerate} showToast={showToast} />
+        </div>
+    );
+};
+
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({
   data,
   activeTab,
@@ -619,6 +679,16 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
         return <ClausesContent clauses={data.clauses} onRegenerate={onRegenerate} showToast={showToast} />;
       case OutputTab.RISKS:
         return <RisksContent risks={data.risks} onRegenerate={onRegenerate} showToast={showToast} />;
+      case OutputTab.FAQ:
+        return (
+          <FAQContent 
+            faqs={faqs || data.faq} 
+            isGenerating={isGeneratingFaqs} 
+            onGenerate={onGenerateFaqs} 
+            onRegenerate={onRegenerate} 
+            showToast={showToast} 
+          />
+        );
       case OutputTab.CHAT:
         return (
           <ChatInterface
