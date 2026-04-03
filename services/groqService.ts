@@ -21,8 +21,8 @@ const callGroqProxy = async (payload: object) => {
     }
 }
 
-export const demystifyDocument = async (legalText: string, userId: string): Promise<DemystifiedDocument> => {
-    const data = await callGroqProxy({ action: 'demystify', legalText, userId });
+export const demystifyDocument = async (legalText: string, userId: string, fileName?: string): Promise<DemystifiedDocument> => {
+    const data = await callGroqProxy({ action: 'demystify', legalText, userId, fileName });
     return data as DemystifiedDocument;
 };
 

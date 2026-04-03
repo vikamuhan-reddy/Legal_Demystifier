@@ -197,7 +197,7 @@ This Agreement shall be governed by and construed in accordance with the laws of
     setCurrentSessionId(null);
 
     try {
-      const result = await demystifyDocument(inputText, user?.id || 'demo-user');
+      const result = await demystifyDocument(inputText, user?.id || 'demo-user', selectedFile?.name);
       setDemystifiedData(result);
       setFaqs(result.faq || []); // Set the FAQs from the initial analysis
       
