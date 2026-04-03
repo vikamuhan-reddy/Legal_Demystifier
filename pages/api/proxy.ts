@@ -12,8 +12,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Get the API key and trim any whitespace.
-    const GROQ_API_KEY = process.env.GROQ_API_KEY?.trim();
+    // Surgical cleaning of the API key to remove non-ASCII characters (like bullet points)
+    // and other common copy-paste artifacts while preserving the actual key.
+    const rawKey = process.env.GROQ_API_KEY || "";
+    const GROQ_API_KEY = rawKey
+        .split('')
+        .filter(char => {
+            const code = char.charCodeAt(0);
+            return code >= 33 && code <= 126; // Keep only printable ASCII (no spaces, no bullets)
+        })
+        .join('')
+        .trim();
 
     const { action, legalText, chatHistory, question, userId, fileName } = req.body;
 
@@ -22,13 +31,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!GROQ_API_KEY || GROQ_API_KEY.length === 0) {
             const envKeys = Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API') || k.includes('KEY'));
             return res.status(500).json({ 
-                error: "GROQ_API_KEY is missing or empty in Vercel.",
+                error: "GROQ_API_KEY is missing or invalid in Vercel.",
                 debugInfo: {
-                    exists: process.env.GROQ_API_KEY !== undefined,
-                    length: process.env.GROQ_API_KEY?.length || 0,
+                    rawExists: rawKey.length > 0,
+                    rawLength: rawKey.length,
+                    cleanedLength: GROQ_API_KEY.length,
                     detectedKeys: envKeys
                 },
-                tip: "Ensure you have added GROQ_API_KEY in Vercel Settings > Environment Variables and REDEPLOYED."
+                tip: "Your API key seems to contain hidden characters (like bullet points). Please re-copy it from the Groq dashboard and paste it directly into Vercel."
             });
         }
         const groq = new Groq({ apiKey: GROQ_API_KEY });
