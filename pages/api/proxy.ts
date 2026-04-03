@@ -20,13 +20,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // All actions here use Groq
         if (!GROQ_API_KEY) {
+            const rawKey = process.env.GROQ_API_KEY;
             const envKeys = Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API') || k.includes('KEY'));
             return res.status(500).json({ 
                 error: "GROQ_API_KEY is not configured in Vercel environment variables.",
                 debugInfo: {
-                    isUndefined: process.env.GROQ_API_KEY === undefined,
-                    isEmpty: process.env.GROQ_API_KEY === "",
-                    detectedRelatedKeys: envKeys
+                    rawKeyExists: rawKey !== undefined,
+                    rawKeyLength: rawKey ? rawKey.length : 0,
+                    cleanedKeyLength: GROQ_API_KEY ? GROQ_API_KEY.length : 0,
+                    detectedRelatedKeys: envKeys,
+                    nodeEnv: process.env.NODE_ENV
                 },
                 tip: "Ensure you have added GROQ_API_KEY in Vercel Project Settings > Environment Variables. After adding it, you MUST trigger a NEW DEPLOYMENT (Redeploy) for the changes to take effect."
             });
