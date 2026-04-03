@@ -1,8 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Groq from "groq-sdk";
-const pdf = require('pdf-parse');
-import mammoth from 'mammoth';
-import Tesseract from 'tesseract.js';
 
 export const config = {
   api: {
@@ -13,6 +10,11 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    // Quick ping test to verify function startup
+    if (req.body?.action === 'ping') {
+        return res.status(200).json({ status: "success", message: "pong" });
+    }
+
     console.log(`[API Analyze] Received ${req.method} request for file: ${req.body?.fileName || 'unknown'}`);
     
     if (req.method !== 'POST') {
@@ -43,15 +45,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 
                 try {
                     if (fileType === 'pdf') {
+                        console.log(`[API Analyze] Loading pdf-parse...`);
+                        let pdf;
+                        try {
+                            pdf = require('pdf-parse');
+                        } catch (e) {
+                            console.error("[API Analyze] Failed to load pdf-parse:", e);
+                            throw new Error("PDF parsing library is not available on the server.");
+                        }
                         console.log(`[API Analyze] Parsing PDF...`);
                         const data = await pdf(buffer);
                         legalText = data.text;
                     } else if (fileType === 'docx') {
+                        console.log(`[API Analyze] Loading mammoth...`);
+                        let mammoth;
+                        try {
+                            mammoth = require('mammoth');
+                        } catch (e) {
+                            console.error("[API Analyze] Failed to load mammoth:", e);
+                            throw new Error("DOCX parsing library is not available on the server.");
+                        }
                         console.log(`[API Analyze] Parsing DOCX...`);
                         const result = await mammoth.extractRawText({ buffer });
                         legalText = result.value;
                     } else if (fileType === 'image' || ['png', 'jpg', 'jpeg'].includes(fileType)) {
-                        console.log(`[API Analyze] Running OCR...`);
+                        console.log(`[API Analyze] Loading tesseract.js...`);
+                        let Tesseract;
+                        try {
+                            Tesseract = require('tesseract.js');
+                        } catch (e) {
+                            console.error("[API Analyze] Failed to load tesseract.js:", e);
+                            throw new Error("OCR library is not available on the server.");
+                        }
+                        console.log(`[API Analyze] Running OCR (Server-side)...`);
                         const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
                         legalText = text;
                     } else {
