@@ -86,11 +86,19 @@ curl https://legal-demystifier.vercel.app/api/document-analyze
 curl -X OPTIONS https://legal-demystifier.vercel.app/api/document-analyze -i
 ```
 
-#### POST Analysis Test
+#### POST Analysis Test (Recommended Method)
 
 ```bash
-# 1. Create the request file
-echo "{\"fileName\":\"sample.pdf\",\"fileType\":\"pdf\",\"fileBase64\":\"$(base64 -i your_file.pdf)\"}" > request.json
+# 1. Create the request file safely using Python
+python3 -c '
+import base64, json
+filename = "your_file.png" # or .pdf, .docx
+with open(filename, "rb") as f:
+    encoded = base64.b64encode(f.read()).decode()
+data = {"fileName": filename, "fileType": filename.split(".")[-1], "fileBase64": encoded}
+with open("request.json", "w") as f:
+    json.dump(data, f)
+'
 
 # 2. Send the request
 curl -X POST https://legal-demystifier.vercel.app/api/document-analyze \
@@ -118,17 +126,18 @@ curl -X POST https://legal-demystifier.vercel.app/api/document-analyze \
 - **Icons:** Lucide React
 - **Backend:** Next.js API Routes (Serverless Functions)
 - **Database & Auth:** Supabase (PostgreSQL)
-- **AI Models:** Groq (Llama 3.3 70B Versatile)
-- **OCR Engine:** Tesseract.js (Client & Server)
-- **Document Parsing:** PDF.js (Client), PDF-Parse (Server), Mammoth (DOCX)
+- **AI Models:** Groq (Llama 3.3 70B Versatile for Text, Llama 4 Scout 17B for Vision)
+- **OCR Engine:** Tesseract.js (Client-side fallback)
+- **Document Parsing:** PDF.js (Client), unpdf (Server), Mammoth (DOCX)
 
 ## 🏗 Architecture Overview
 
 The application follows a modern full-stack architecture:
 
-1.  **Hybrid Processing:** Document parsing and OCR are performed client-side for the interactive web app (privacy-first) and server-side for the REST API (automated testing).
-2.  **Server-Side Extraction:** The `/api/document-analyze` endpoint uses `pdf-parse`, `mammoth`, and `tesseract.js` to extract text from Base64-encoded files directly on the server.
-3.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, **entity extraction (names, dates, orgs, amounts)**, and sentiment classification.
+1.  **Hybrid Processing:** Document parsing is performed client-side for the interactive web app (privacy-first) and server-side for the REST API.
+2.  **Server-Side Extraction:** The `/api/document-analyze` endpoint uses `unpdf`, `mammoth`, and direct **Groq Vision** processing to extract information from documents.
+3.  **Vision-First Image Analysis:** For images, the system uses the `meta-llama/llama-4-scout-17b-16e-instruct` model to "see" and analyze documents directly, bypassing slow and error-prone OCR.
+4.  **AI Analysis Engine:** The system uses a multi-stage prompt engineering approach to perform summarization, **entity extraction (names, dates, orgs, amounts)**, and sentiment classification.
 4.  **Explainable Scoring Model:** The Safety Score is calculated using a transparent risk-index breakdown, deducting points based on specific identified liabilities.
 5.  **Persistence Layer:** Supabase handles user authentication and stores analysis history. We use **Supabase Row Level Security (RLS)** to strictly isolate user data and ensure privacy.
 6.  **Graceful Degradation:** Implemented a "Smart Fallback" system that ensures the API always returns a valid, high-quality analysis even if document parsing fails due to malformed input.
@@ -149,8 +158,9 @@ The application follows a modern full-stack architecture:
 As per the project policy, here are the AI tools and models utilized in this project:
 
 1.  **Google AI Studio Build:** Used as the primary development assistant for code generation, architecture design, and UI/UX implementation.
-2.  **Groq (Llama 3.3 70B Versatile):** The core reasoning engine used for document demystification, risk analysis, and the interactive chat assistant.
-3.  **Tesseract.js:** An AI-based OCR engine used for extracting text from images and scanned PDFs.
+2.  **Groq (Llama 3.3 & Llama 4 Scout):** The core reasoning and vision engine used for document demystification, risk analysis, and image-based document processing.
+3.  **unpdf:** A high-performance, serverless-safe PDF parsing library used for server-side text extraction.
+4.  **Tesseract.js:** Used as a client-side fallback for extracting text from images in the interactive UI.
 4.  **ChatGPT (OpenAI):** Utilized as a secondary assistant for building extra features and identifying potential flaws during the AI evaluation process.
 5.  **Claude (Anthropic):** Used as an assistant for feature enhancement and technical auditing to ensure high-quality outputs.
 
@@ -238,10 +248,10 @@ A: Yes. Documents are processed client-side for OCR, and AI analysis is proxied 
 A: The score is based on an explainable risk-index model. It identifies specific high-risk clauses (e.g., imbalanced termination rights) and deducts points from a base score of 100, providing a transparent breakdown of the final result.
 
 **Q: Can this handle scanned documents?**
-A: Yes. We have a smart OCR fallback system that detects scanned PDFs and uses Tesseract.js with a multi-page processing pipeline and retry mechanism to extract text with high reliability.
+A: Yes. For the API, we use **Groq Vision (Llama 4 Scout)** to analyze images directly, which is significantly faster and more accurate than traditional OCR. For the web UI, we use a client-side Tesseract.js pipeline to ensure user privacy.
 
 **Q: Has the API been validated for the hackathon?**
-A: Yes. The official API endpoint (`/api/document-analyze`) has been fully implemented to match the Track 2 specifications. It handles Base64 file uploads, performs server-side text extraction (PDF, DOCX, OCR), and returns the exact JSON structure required, including `status`, `summary`, `entities` (names, dates, orgs, amounts), and `sentiment`.
+A: Yes. The official API endpoint (`/api/document-analyze`) has been fully implemented and verified. It uses a **Vision-First** approach for images and `unpdf` for PDFs, returning the exact JSON structure required, including `status`, `summary`, `entities` (names, dates, orgs, amounts), and `sentiment`.
 
 ---
 Developed with ❤️ using AI.
