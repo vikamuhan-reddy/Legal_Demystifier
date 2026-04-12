@@ -22,7 +22,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     // Additional minimal polyfills for Node.js environment to satisfy pdfjs-dist
     if (typeof (global as any).Image === 'undefined') (global as any).Image = class {};
-    if (typeof (global as any).document === 'undefined') (global as any).document = { createElement: () => ({}) };
+    if (typeof (global as any).document === 'undefined') (global as any).document = { 
+        createElement: () => ({
+            getContext: () => ({
+                fillRect: () => {},
+                clearRect: () => {},
+                getImageData: (x: any, y: any, w: any, h: any) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+                putImageData: () => {},
+                createImageData: () => ({ data: new Uint8ClampedArray(0) }),
+                setTransform: () => {},
+                drawImage: () => {},
+                save: () => {},
+                restore: () => {},
+                beginPath: () => {},
+                moveTo: () => {},
+                lineTo: () => {},
+                closePath: () => {},
+                stroke: () => {},
+                fill: () => {},
+                arc: () => {},
+                rect: () => {},
+                scale: () => {},
+                rotate: () => {},
+                translate: () => {},
+                transform: () => {},
+                setLineDash: () => {},
+                measureText: () => ({ width: 0 }),
+                fillText: () => {},
+                strokeText: () => {},
+            }),
+            style: {},
+            width: 0,
+            height: 0,
+        }) 
+    };
+    if (typeof (global as any).URL.createObjectURL === 'undefined') {
+        (global as any).URL.createObjectURL = () => '';
+        (global as any).URL.revokeObjectURL = () => {};
+    }
+    if (typeof (global as any).Path2D === 'undefined') (global as any).Path2D = class {};
+    if (typeof (global as any).navigator === 'undefined') (global as any).navigator = { userAgent: 'Node.js' };
 
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
