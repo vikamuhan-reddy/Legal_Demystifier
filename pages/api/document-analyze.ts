@@ -39,175 +39,110 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ status: "error", error: 'Method Not Allowed. Please use POST for document analysis.' });
     }
 
-    // 1. API Authentication (Section 6)
+    // 1. API Authentication
     const xApiKey = req.headers['x-api-key'];
-    if (!xApiKey) {
-        return res.status(401).json({ status: "error", error: "Unauthorized. Missing x-api-key header." });
+    // In a real app, you'd check this against an environment variable
+    const VALID_API_KEY = process.env.ANALYSIS_API_KEY || "legal-demystifier-v1";
+    
+    if (!xApiKey || xApiKey !== VALID_API_KEY) {
+        return res.status(401).json({ 
+            status: "error", 
+            error: "Unauthorized. Please provide a valid x-api-key header." 
+        });
     }
 
-    // 2. Request Body Fields (Section 8)
+    // 2. Request Body Fields
     const { fileName, fileType: rawFileType, fileBase64 } = req.body;
     const fileType = (rawFileType || "").toLowerCase().trim();
     
-    // Support both the hackathon spec and my frontend's existing format
-    let legalText = req.body.legalText || "";
+    if (!fileBase64) {
+        return res.status(400).json({ status: "error", error: "Missing fileBase64 in request body." });
+    }
+    
+    let legalText = "";
     
     try {
-        // 3. Document Processing (Section 5)
-        if (fileBase64 && !legalText) {
-            // Clean Base64 (remove data URI prefix if present)
-            let cleanBase64 = fileBase64.trim();
-            if (cleanBase64.includes(';base64,')) {
-                console.log(`[API Analyze] Stripping data URI prefix...`);
-                cleanBase64 = cleanBase64.split(';base64,')[1];
-            }
+        // 3. Document Processing
+        // Clean Base64 (remove data URI prefix if present)
+        let cleanBase64 = fileBase64.trim();
+        if (cleanBase64.includes(';base64,')) {
+            cleanBase64 = cleanBase64.split(';base64,')[1];
+        }
 
-            if (cleanBase64.length < 50) {
-                console.log(`[API Analyze] cleanBase64 is too short, skipping parsing.`);
-                legalText = ""; // Trigger fallback below
+        console.log(`[API Analyze] Processing ${fileType} file: ${fileName}`);
+        const buffer = Buffer.from(cleanBase64, 'base64');
+
+        try {
+            if (fileType === 'pdf') {
+                const pdf = require('pdf-parse');
+                const data = await pdf(buffer);
+                legalText = data.text;
+            } else if (fileType === 'docx') {
+                const mammoth = require('mammoth');
+                const result = await mammoth.extractRawText({ buffer });
+                legalText = result.value;
+            } else if (['png', 'jpg', 'jpeg', 'webp', 'image'].includes(fileType)) {
+                const Tesseract = require('tesseract.js');
+                const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
+                legalText = text;
             } else {
-                console.log(`[API Analyze] Decoding base64 for ${fileType} (length: ${cleanBase64.length})...`);
-                const buffer = Buffer.from(cleanBase64, 'base64');
-                
-                // Debug: Check if it's actually a PDF
-                if (fileType === 'pdf') {
-                    const header = buffer.slice(0, 4).toString();
-                    console.log(`[API Analyze] PDF Header check: ${header}`);
-                }
-
-                try {
-                    if (fileType === 'pdf') {
-                        console.log(`[API Analyze] Loading pdf-parse...`);
-                        let pdf;
-                        try {
-                            pdf = require('pdf-parse');
-                        } catch (e) {
-                            console.error("[API Analyze] Failed to load pdf-parse:", e);
-                            throw new Error("PDF parsing library is not available on the server.");
-                        }
-                        console.log(`[API Analyze] Parsing PDF...`);
-                        const data = await pdf(buffer);
-                        legalText = data.text;
-                        console.log(`[API Analyze] Extracted text length: ${legalText?.length || 0}`);
-                    } else if (fileType === 'docx') {
-                        console.log(`[API Analyze] Loading mammoth...`);
-                        let mammoth;
-                        try {
-                            mammoth = require('mammoth');
-                        } catch (e) {
-                            console.error("[API Analyze] Failed to load mammoth:", e);
-                            throw new Error("DOCX parsing library is not available on the server.");
-                        }
-                        console.log(`[API Analyze] Parsing DOCX...`);
-                        const result = await mammoth.extractRawText({ buffer });
-                        legalText = result.value;
-                    } else if (fileType === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(fileType)) {
-                        console.log(`[API Analyze] Loading tesseract.js...`);
-                        let Tesseract;
-                        try {
-                            Tesseract = require('tesseract.js');
-                        } catch (e) {
-                            console.error("[API Analyze] Failed to load tesseract.js:", e);
-                            throw new Error("OCR library is not available on the server.");
-                        }
-                        console.log(`[API Analyze] Running OCR (Server-side)...`);
-                        const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
-                        legalText = text;
-                    } else {
-                        console.log(`[API Analyze] Unsupported or unknown file type: ${fileType}`);
-                        legalText = ""; // Trigger fallback
-                    }
-                } catch (parseError) {
-                    console.error("[API Analyze] Document parsing failed:", parseError);
-                    legalText = ""; // Trigger fallback
-                }
+                throw new Error(`Unsupported file type: ${fileType}`);
             }
+        } catch (parseError: any) {
+            console.error("[API Analyze] Parsing failed:", parseError);
+            throw new Error(`Failed to extract text from ${fileType}: ${parseError.message}`);
         }
 
-        // 3.5 SMART FALLBACK (Hackathon Winning Move)
-        // If parsing failed or text is too short, use a high-quality sample document
-        // so the AI always returns a valid, impressive analysis to the judges.
-        if (!legalText || legalText.trim().length < 20) {
-            console.log(`[API Analyze] Using high-quality fallback document for analysis.`);
-            legalText = `
-                RESIDENTIAL LEASE AGREEMENT
-                
-                This Lease Agreement is made on April 3, 2026, between Rajesh Kumar (Landlord) 
-                and Arjun Sharma (Tenant) for the property located at 123 Maple Heights, Bangalore.
-                
-                1. TERM: The lease shall begin on May 1, 2026, and end on April 30, 2027.
-                2. RENT: Tenant agrees to pay a monthly rent of ₹25,000, due on the 5th of each month.
-                3. SECURITY DEPOSIT: A security deposit of ₹75,000 shall be paid upon signing.
-                4. UTILITIES: Tenant is responsible for electricity and water charges.
-                
-                Signed,
-                Rajesh Kumar (Landlord)
-                Arjun Sharma (Tenant)
-            `;
+        if (!legalText || legalText.trim().length < 10) {
+            throw new Error("Could not extract meaningful text from the provided document.");
         }
 
-        // 4. AI Analysis
-        const rawKey = process.env.GROQ_API_KEY || "";
-        const GROQ_API_KEY = rawKey.split('').filter(char => {
-            const code = char.charCodeAt(0);
-            return code >= 33 && code <= 126;
-        }).join('').trim();
-
+        // 4. AI Analysis with Groq
+        const GROQ_API_KEY = (process.env.GROQ_API_KEY || "").trim();
         if (!GROQ_API_KEY) {
-            console.error("[API Analyze] GROQ_API_KEY is missing!");
-            throw new Error("GROQ_API_KEY is not configured.");
+            throw new Error("GROQ_API_KEY is not configured on the server.");
         }
 
-        console.log(`[API Analyze] Final text length to analyze: ${legalText.length}`);
         const groq = new Groq({ apiKey: GROQ_API_KEY });
         
-        const prompt = `
-            Analyze the following legal document and extract key information.
+        const systemPrompt = `
+            You are an expert legal analyst. Your task is to analyze the provided legal document text and extract key information.
+            Focus on identifying the parties involved, critical dates, organizations, and monetary amounts.
+            Provide a concise summary of the document's purpose and tone.
             
-            Return the result as a JSON object with the following structure:
+            You MUST return a valid JSON object with the following structure:
             {
-              "summary": "AI-generated summary of the document content.",
+              "summary": "A clear, professional summary of the document.",
               "entities": {
-                "names": ["List of people names"],
-                "dates": ["List of important dates"],
-                "organizations": ["List of organizations/companies"],
-                "amounts": ["List of monetary amounts"]
+                "names": ["Person 1", "Person 2"],
+                "dates": ["Date 1", "Date 2"],
+                "organizations": ["Org 1", "Org 2"],
+                "amounts": ["Amount 1", "Amount 2"]
               },
               "sentiment": "Positive | Neutral | Negative"
             }
-
-            LEGAL DOCUMENT:
-            ---
-            ${legalText}
-            ---
         `;
 
         const completion = await groq.chat.completions.create({
             messages: [
-                {
-                    role: "system",
-                    content: "You are a helpful legal assistant that outputs structured JSON reports."
-                },
-                {
-                    role: "user",
-                    content: prompt,
-                },
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Analyze this document:\n\n${legalText}` },
             ],
             model: "llama-3.3-70b-versatile",
             response_format: { type: "json_object" },
-            temperature: 0.2,
+            temperature: 0.1,
         });
 
         const aiResponse = completion.choices[0]?.message?.content;
-        if (!aiResponse) throw new Error("AI returned empty response");
+        if (!aiResponse) throw new Error("AI failed to generate a response.");
         
-        const parsedData = JSON.parse(aiResponse.trim());
+        const parsedData = JSON.parse(aiResponse);
 
-        // 5. API Response Body (Section 9)
+        // 5. Final Response
         return res.status(200).json({
             status: "success",
             fileName: fileName || "document.pdf",
-            summary: parsedData.summary || "No summary available.",
+            summary: parsedData.summary,
             entities: {
                 names: parsedData.entities?.names || [],
                 dates: parsedData.entities?.dates || [],
@@ -218,10 +153,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
     } catch (error: any) {
-        console.error("API Error:", error);
-        return res.status(500).json({
+        console.error("[API Analyze] Error:", error);
+        return res.status(error.message.includes("Unauthorized") ? 401 : 500).json({
             status: "error",
-            error: error.message || "Internal Server Error"
+            error: error.message || "An unexpected error occurred during analysis."
         });
     }
 }
