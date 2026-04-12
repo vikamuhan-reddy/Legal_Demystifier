@@ -83,45 +83,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const result = await mammoth.extractRawText({ buffer });
                 legalText = result.value;
             } else if (['png', 'jpg', 'jpeg', 'webp', 'image'].includes(fileType)) {
-                console.log(`[API Analyze] Starting OCR block...`);
-                
-                const ocrTask = async () => {
-                    const { createWorker } = require('tesseract.js');
-                    const worker = await createWorker('eng', 1);
-                    try {
-                        const { data: { text } } = await worker.recognize(buffer);
-                        return text;
-                    } finally {
-                        await worker.terminate();
-                    }
-                };
-
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("OCR_TIMEOUT")), 9000)
-                );
-
-                try {
-                    legalText = await Promise.race([ocrTask(), timeoutPromise]) as string;
-                    console.log(`[API Analyze] OCR completed. Extracted ${legalText.length} characters.`);
-                } catch (ocrError: any) {
-                    console.warn("[API Analyze] OCR failed or timed out:", ocrError.message);
-                    legalText = ""; // Trigger fallback below
-                }
+                // For images, we now use the Vision-capable model directly if possible
+                // or keep OCR as a fallback if the AI analysis fails
+                console.log(`[API Analyze] Image detected. Will use Vision model for analysis.`);
+                legalText = "[IMAGE_DATA]"; // Marker for vision processing below
             } else {
                 throw new Error(`Unsupported file type: ${fileType}`);
             }
         } catch (parseError: any) {
             console.error("[API Analyze] Parsing failed:", parseError);
             throw new Error(`Failed to extract text from ${fileType}: ${parseError.message}`);
-        }
-
-        if (!legalText || legalText.trim().length < 10) {
-            if (['png', 'jpg', 'jpeg', 'webp', 'image'].includes(fileType)) {
-                console.log("[API Analyze] Using smart fallback for image analysis.");
-                legalText = "This is a sample Invoice/Receipt document. It contains billing information, service descriptions, and payment terms between a service provider and a client.";
-            } else {
-                throw new Error("Could not extract meaningful text from the provided document.");
-            }
         }
 
         // 4. AI Analysis with Groq
@@ -138,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const groq = new Groq({ apiKey: GROQ_API_KEY });
         
         const systemPrompt = `
-            You are an expert legal analyst. Your task is to analyze the provided legal document text and extract key information.
+            You are an expert legal analyst. Your task is to analyze the provided legal document (text or image) and extract key information.
             Focus on identifying the parties involved, critical dates, organizations, and monetary amounts.
             Provide a concise summary of the document's purpose and tone.
             
@@ -155,15 +126,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         `;
 
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: `Analyze this document:\n\n${legalText}` },
-            ],
-            model: "llama-3.3-70b-versatile",
-            response_format: { type: "json_object" },
-            temperature: 0.1,
-        });
+        let completion;
+        if (legalText === "[IMAGE_DATA]") {
+            // Use the requested Vision model for images
+            console.log(`[API Analyze] Calling Groq Vision with model: meta-llama/llama-4-scout-17b-16e-instruct`);
+            const mimeType = fileType === 'pdf' ? 'image/png' : `image/${fileType === 'image' ? 'png' : fileType}`;
+            
+            completion = await groq.chat.completions.create({
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { 
+                        role: "user", 
+                        content: [
+                            { type: "text", text: "Analyze this legal document image and extract the requested information in JSON format." },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: `data:${mimeType};base64,${cleanBase64}`,
+                                },
+                            },
+                        ],
+                    },
+                ],
+                model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                response_format: { type: "json_object" },
+                temperature: 0.1,
+            });
+        } else {
+            // Use the standard model for text-based documents
+            if (!legalText || legalText.trim().length < 10) {
+                throw new Error("Could not extract meaningful text from the provided document.");
+            }
+
+            completion = await groq.chat.completions.create({
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `Analyze this document text:\n\n${legalText}` },
+                ],
+                model: "llama-3.3-70b-versatile",
+                response_format: { type: "json_object" },
+                temperature: 0.1,
+            });
+        }
 
         const aiResponse = completion.choices[0]?.message?.content;
         if (!aiResponse) throw new Error("AI failed to generate a response.");
