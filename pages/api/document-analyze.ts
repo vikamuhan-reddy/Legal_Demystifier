@@ -76,7 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 console.log(`[API Analyze] Parsing PDF with unpdf...`);
                 const pdf = await getDocumentProxy(new Uint8Array(buffer));
                 const { text } = await extractText(pdf, { mergePages: true });
-                legalText = text.join('\n');
+                // When mergePages is true, text is a string (or an array of 1 string depending on version)
+                // The error indicates it's a string here.
+                legalText = Array.isArray(text) ? text.join('\n') : text;
             } else if (fileType === 'docx') {
                 const mammoth = require('mammoth');
                 const result = await mammoth.extractRawText({ buffer });

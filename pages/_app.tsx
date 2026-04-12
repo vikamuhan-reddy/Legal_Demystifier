@@ -15,8 +15,8 @@ export default function App({ Component, pageProps }: AppProps) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Legal Document Demystifier</title>
         </Head>
-        <Script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js" strategy="beforeInteractive" />
-        <Script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" strategy="beforeInteractive" />
+        <Script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js" strategy="afterInteractive" />
+        <Script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" strategy="afterInteractive" />
         <Component {...pageProps} />
       </AuthProvider>
     </ThemeProvider>
