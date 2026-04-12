@@ -84,8 +84,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const result = await mammoth.extractRawText({ buffer });
                 legalText = result.value;
             } else if (['png', 'jpg', 'jpeg', 'webp', 'image'].includes(fileType)) {
+                console.log(`[API Analyze] Starting OCR with Tesseract.js...`);
                 const Tesseract = require('tesseract.js');
-                const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
+                const { data: { text } } = await Tesseract.recognize(buffer, 'eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            console.log(`[Tesseract] ${m.status}: ${Math.round(m.progress * 100)}%`);
+                        }
+                    }
+                });
+                console.log(`[API Analyze] OCR completed. Extracted ${text.length} characters.`);
                 legalText = text;
             } else {
                 throw new Error(`Unsupported file type: ${fileType}`);
