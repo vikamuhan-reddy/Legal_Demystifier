@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Groq from "groq-sdk";
+import { getDocumentProxy, extractText } from "unpdf";
 
 export const config = {
   api: {
@@ -10,59 +11,6 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    // Polyfill for DOMMatrix which is missing in Node.js but required by some PDF libraries
-    if (typeof (global as any).DOMMatrix === 'undefined') {
-        (global as any).DOMMatrix = class DOMMatrix {
-            m11 = 1; m12 = 0; m13 = 0; m14 = 0;
-            m21 = 0; m22 = 1; m23 = 0; m24 = 0;
-            m31 = 0; m32 = 0; m33 = 1; m34 = 0;
-            m41 = 0; m42 = 0; m43 = 0; m44 = 1;
-            constructor() {}
-        };
-    }
-    // Additional minimal polyfills for Node.js environment to satisfy pdfjs-dist
-    if (typeof (global as any).Image === 'undefined') (global as any).Image = class {};
-    if (typeof (global as any).document === 'undefined') (global as any).document = { 
-        createElement: () => ({
-            getContext: () => ({
-                fillRect: () => {},
-                clearRect: () => {},
-                getImageData: (x: any, y: any, w: any, h: any) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-                putImageData: () => {},
-                createImageData: () => ({ data: new Uint8ClampedArray(0) }),
-                setTransform: () => {},
-                drawImage: () => {},
-                save: () => {},
-                restore: () => {},
-                beginPath: () => {},
-                moveTo: () => {},
-                lineTo: () => {},
-                closePath: () => {},
-                stroke: () => {},
-                fill: () => {},
-                arc: () => {},
-                rect: () => {},
-                scale: () => {},
-                rotate: () => {},
-                translate: () => {},
-                transform: () => {},
-                setLineDash: () => {},
-                measureText: () => ({ width: 0 }),
-                fillText: () => {},
-                strokeText: () => {},
-            }),
-            style: {},
-            width: 0,
-            height: 0,
-        }) 
-    };
-    if (typeof (global as any).URL.createObjectURL === 'undefined') {
-        (global as any).URL.createObjectURL = () => '';
-        (global as any).URL.revokeObjectURL = () => {};
-    }
-    if (typeof (global as any).Path2D === 'undefined') (global as any).Path2D = class {};
-    if (typeof (global as any).navigator === 'undefined') (global as any).navigator = { userAgent: 'Node.js' };
-
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -94,7 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 1. API Authentication
     const xApiKey = req.headers['x-api-key'];
-    // In a real app, you'd check this against an environment variable
     const VALID_API_KEY = process.env.ANALYSIS_API_KEY || "legal-demystifier-v1";
     
     if (!xApiKey || xApiKey !== VALID_API_KEY) {
@@ -116,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     try {
         // 3. Document Processing
-        // Clean Base64 (remove data URI prefix if present)
         let cleanBase64 = fileBase64.trim();
         if (cleanBase64.includes(';base64,')) {
             cleanBase64 = cleanBase64.split(';base64,')[1];
@@ -127,9 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         try {
             if (fileType === 'pdf') {
-                const pdf = require('pdf-parse');
-                const data = await pdf(buffer);
-                legalText = data.text;
+                console.log(`[API Analyze] Parsing PDF with unpdf...`);
+                const pdf = await getDocumentProxy(new Uint8Array(buffer));
+                const { text } = await extractText(pdf, { mergePages: true });
+                legalText = text.join('\n');
             } else if (fileType === 'docx') {
                 const mammoth = require('mammoth');
                 const result = await mammoth.extractRawText({ buffer });
