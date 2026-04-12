@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             cleanBase64 = cleanBase64.split(';base64,')[1];
         }
 
-        console.log(`[API Analyze] Processing ${fileType} file: ${fileName}`);
+        console.log(`[API Analyze] Processing ${fileType} file: ${fileName} (Size: ${cleanBase64.length} chars)`);
         const buffer = Buffer.from(cleanBase64, 'base64');
 
         try {
@@ -76,38 +76,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 console.log(`[API Analyze] Parsing PDF with unpdf...`);
                 const pdf = await getDocumentProxy(new Uint8Array(buffer));
                 const { text } = await extractText(pdf, { mergePages: true });
-                // When mergePages is true, text is a string (or an array of 1 string depending on version)
-                // The error indicates it's a string here.
                 legalText = Array.isArray(text) ? text.join('\n') : text;
             } else if (fileType === 'docx') {
                 const mammoth = require('mammoth');
                 const result = await mammoth.extractRawText({ buffer });
                 legalText = result.value;
             } else if (['png', 'jpg', 'jpeg', 'webp', 'image'].includes(fileType)) {
-                console.log(`[API Analyze] Starting OCR with Tesseract.js (Worker Mode)...`);
-                const { createWorker } = require('tesseract.js');
-                const worker = await createWorker('eng', 1);
+                console.log(`[API Analyze] Starting OCR block...`);
                 
-                try {
-                    // Smart Timeout: Race OCR against an 8-second timer
-                    // This ensures we return a result before Vercel kills the function (10s limit)
-                    const ocrPromise = worker.recognize(buffer);
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("OCR_TIMEOUT")), 8000)
-                    );
-
-                    const result: any = await Promise.race([ocrPromise, timeoutPromise]);
-                    console.log(`[API Analyze] OCR completed. Extracted ${result.data.text.length} characters.`);
-                    legalText = result.data.text;
-                } catch (ocrError: any) {
-                    if (ocrError.message === "OCR_TIMEOUT") {
-                        console.warn("[API Analyze] OCR timed out. Switching to fallback analysis.");
-                        legalText = ""; // Trigger fallback below
-                    } else {
-                        throw ocrError;
+                const ocrTask = async () => {
+                    const { createWorker } = require('tesseract.js');
+                    const worker = await createWorker('eng', 1);
+                    try {
+                        const { data: { text } } = await worker.recognize(buffer);
+                        return text;
+                    } finally {
+                        await worker.terminate();
                     }
-                } finally {
-                    await worker.terminate();
+                };
+
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("OCR_TIMEOUT")), 7500)
+                );
+
+                try {
+                    legalText = await Promise.race([ocrTask(), timeoutPromise]) as string;
+                    console.log(`[API Analyze] OCR completed. Extracted ${legalText.length} characters.`);
+                } catch (ocrError: any) {
+                    console.warn("[API Analyze] OCR failed or timed out:", ocrError.message);
+                    legalText = ""; // Trigger fallback below
                 }
             } else {
                 throw new Error(`Unsupported file type: ${fileType}`);
