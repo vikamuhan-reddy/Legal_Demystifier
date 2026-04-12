@@ -14,7 +14,7 @@ Our system provides a robust, public API endpoint for document analysis and extr
 
 **Headers:**
 - `Content-Type: application/json`
-- `x-api-key: hackathon-test-key` (Any non-empty string is accepted for validation)
+- `x-api-key: legal-demystifier-v1` (Default key for validation)
 
 **Request Body (Section 8):**
 ```json
@@ -89,14 +89,14 @@ curl -X OPTIONS https://legal-demystifier.vercel.app/api/document-analyze -i
 #### POST Analysis Test
 
 ```bash
+# 1. Create the request file
+echo "{\"fileName\":\"sample.pdf\",\"fileType\":\"pdf\",\"fileBase64\":\"$(base64 -i your_file.pdf)\"}" > request.json
+
+# 2. Send the request
 curl -X POST https://legal-demystifier.vercel.app/api/document-analyze \
 -H "Content-Type: application/json" \
--H "x-api-key: test" \
--d '{
-  "fileName":"sample.pdf",
-  "fileType":"pdf",
-  "fileBase64":"JVBERi0xLjQK..."
-}'
+-H "x-api-key: legal-demystifier-v1" \
+-d @request.json | python3 -m json.tool
 ```
 
 ---

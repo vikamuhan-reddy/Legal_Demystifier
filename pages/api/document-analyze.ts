@@ -63,12 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     try {
         // 3. Document Processing
-        let cleanBase64 = fileBase64.trim();
+        // Aggressively clean Base64: remove all whitespace/newlines and data URI prefix
+        let cleanBase64 = fileBase64.replace(/\s/g, '');
         if (cleanBase64.includes(';base64,')) {
             cleanBase64 = cleanBase64.split(';base64,')[1];
         }
 
-        console.log(`[API Analyze] Processing ${fileType} file: ${fileName} (Size: ${cleanBase64.length} chars)`);
+        console.log(`[API Analyze] Processing ${fileType} file: ${fileName} (Cleaned Size: ${cleanBase64.length} chars)`);
         const buffer = Buffer.from(cleanBase64, 'base64');
 
         try {
@@ -96,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 };
 
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("OCR_TIMEOUT")), 7500)
+                    setTimeout(() => reject(new Error("OCR_TIMEOUT")), 9000)
                 );
 
                 try {
